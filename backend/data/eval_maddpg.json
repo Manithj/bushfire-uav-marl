@@ -1,0 +1,28 @@
+[
+  {
+    "policy": "maddpg",
+    "seed": 101,
+    "detected": 4,
+    "extinguished": 4,
+    "active": 0,
+    "total": 4,
+    "cells": 70,
+    "coverage": 0.5709749126706891,
+    "reward": 120.54595201424081,
+    "trained": true,
+    "algo": "maddpg"
+  },
+  {
+    "policy": "maddpg",
+    "seed": 202,
+    "detected": 4,
+    "extinguished": 4,
+    "active": 0,
+    "total": 4,
+    "cells": 86,
+    "coverage": 0.5900285805017466,
+    "reward": 126.13109015333261,
+    "trained": true,
+    "algo": "maddpg"
+  }
+]

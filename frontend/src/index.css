@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #0b0f14;
+  color: #e8eef4;
+}
+
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
+}
+
+.panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #2a3544 transparent;
+}
+
+.panel-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: #2a3544;
+  border-radius: 4px;
+}

@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bushfire UAV MARL Laboratory</title>
+<meta name="description" content="A seeded, research-grade simulator for cooperative wildfire detection and suppression with autonomous UAVs, trained with MAPPO, MADDPG and independent DQN.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --ground:#F2F3F0;
+  --surface:#FAFAF8;
+  --ink:#1A1E1C;
+  --muted:#5B6460;
+  --rule:#D3D7D2;
+  --rule-strong:#AEB5AF;
+  --ember:#C8421A;
+  --ember-soft:#F0B79F;
+  --ash:#8E9490;
+  --euc:#2E7A57;
+  --learned:#2F5FA6;
+  --scripted:#B8621B;
+  --control:#6B4FA0;
+  --cell-unburned:#E4E7E1;
+  --cell-burning:#D8471B;
+  --cell-burned:#4A4F4C;
+  --cell-out:#3E9A6E;
+  --uav:#1A1E1C;
+  --display:"Archivo",system-ui,"Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#141716;
+    --surface:#1C201E;
+    --ink:#E6E8E3;
+    --muted:#9AA39E;
+    --rule:#2E3431;
+    --rule-strong:#485049;
+    --ember:#E8663A;
+    --ember-soft:#6A3320;
+    --ash:#6F7672;
+    --euc:#5DBA8B;
+    --learned:#5A88D0;
+    --scripted:#C46E22;
+    --control:#8F70CC;
+    --cell-unburned:#222724;
+    --cell-burning:#E8663A;
+    --cell-burned:#0E100F;
+    --cell-out:#3E9A6E;
+    --uav:#E6E8E3;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#141716;
+  --surface:#1C201E;
+  --ink:#E6E8E3;
+  --muted:#9AA39E;
+  --rule:#2E3431;
+  --rule-strong:#485049;
+  --ember:#E8663A;
+  --ember-soft:#6A3320;
+  --ash:#6F7672;
+  --euc:#5DBA8B;
+  --learned:#5A88D0;
+  --scripted:#C46E22;
+  --control:#8F70CC;
+  --cell-unburned:#222724;
+  --cell-burning:#E8663A;
+  --cell-burned:#0E100F;
+  --cell-out:#3E9A6E;
+  --uav:#E6E8E3;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:17px;
+  line-height:1.55;
+  font-optical-sizing:auto;
+}
+a{color:inherit;text-decoration-color:var(--rule-strong);text-underline-offset:3px}
+a:hover{text-decoration-color:var(--ink)}
+:focus-visible{outline:2px solid var(--learned);outline-offset:3px}
+
+.progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--ember);z-index:10}
+
+.frame{
+  display:grid;
+  grid-template-columns:200px minmax(0,1fr);
+  gap:0 40px;
+  max-width:1240px;
+  margin:0 auto;
+  padding-block:0 96px;
+  padding-inline:24px;
+}
+.rail{
+  position:sticky;top:0;align-self:start;height:100vh;
+  padding-block:36px 24px;
+  display:flex;flex-direction:column;gap:28px;
+  border-right:1px solid var(--rule);
+  padding-right:20px;
+}
+.rail .mark{
+  font-family:var(--display);font-variation-settings:"wdth" 118;font-weight:700;
+  font-size:13px;letter-spacing:.06em;text-transform:uppercase;line-height:1.2;
+}
+.rail .mark small{display:block;font-weight:400;font-variation-settings:"wdth" 100;letter-spacing:.02em;text-transform:none;color:var(--muted);margin-top:4px}
+.rail nav{display:flex;flex-direction:column;gap:2px;font-family:var(--mono);font-size:12px}
+.rail nav a{
+  display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:baseline;
+  padding:5px 6px;text-decoration:none;color:var(--muted);border-radius:2px;
+}
+.rail nav a span:first-child{font-variant-numeric:tabular-nums}
+.rail nav a:hover{color:var(--ink)}
+.rail nav a[aria-current="true"]{color:var(--ink);background:var(--surface);box-shadow:inset 2px 0 0 var(--ember)}
+.rail .hint{margin-top:auto;font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.5}
+.rail .hint kbd{font:inherit;border:1px solid var(--rule-strong);border-radius:3px;padding:0 4px}
+
+main{min-width:0}
+section.slide{
+  padding-block:72px 56px;
+  border-bottom:1px solid var(--rule);
+  scroll-margin-top:0;
+}
+section.slide:last-of-type{border-bottom:0}
+.eyebrow{
+  font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  display:flex;gap:14px;align-items:baseline;margin:0 0 18px;
+}
+.eyebrow b{font-weight:500;color:var(--ember);font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{
+  font-variation-settings:"wdth" 118;font-weight:700;
+  font-size:clamp(40px,6vw,76px);line-height:.98;letter-spacing:-.015em;
+  max-width:14ch;
+}
+h2{font-variation-settings:"wdth" 112;font-weight:700;font-size:clamp(28px,3.4vw,40px);line-height:1.08;letter-spacing:-.01em;max-width:22ch}
+h3{font-variation-settings:"wdth" 108;font-weight:600;font-size:18px;line-height:1.25;margin-bottom:8px}
+p{max-width:66ch;margin:0}
+.lede{font-size:21px;line-height:1.45;max-width:38ch;margin-top:24px}
+.stack{display:flex;flex-direction:column;gap:18px;margin-top:26px}
+.stack p{max-width:66ch}
+.wide{max-width:none}
+em{font-style:italic}
+strong{font-weight:600}
+
+.stamp{
+  display:inline-flex;gap:10px;align-items:center;
+  font-family:var(--mono);font-size:12px;letter-spacing:.04em;
+  border:1px solid var(--ember);color:var(--ember);padding:6px 10px;border-radius:2px;
+  margin-top:28px;
+}
+.stamp::before{content:"";width:8px;height:8px;background:var(--ember);border-radius:50%}
+
+.figure{margin-top:36px}
+.figure figcaption{
+  font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.6;
+  margin-top:10px;max-width:80ch;
+}
+.figure figcaption b{color:var(--ink);font-weight:500}
+
+.sim{
+  position:relative;width:100%;aspect-ratio:5/3;max-width:100%;
+  background:var(--cell-unburned);border:1px solid var(--rule-strong);
+  overflow:hidden;
+}
+.sim canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
+.sim .hud{
+  position:absolute;left:12px;bottom:10px;
+  font-family:var(--mono);font-size:11px;line-height:1.5;
+  color:var(--ink);background:color-mix(in srgb,var(--surface) 82%,transparent);
+  padding:6px 8px;border:1px solid var(--rule);
+  font-variant-numeric:tabular-nums;
+}
+.sim .hud span{display:inline-block;min-width:8ch}
+.legend{
+  display:flex;flex-wrap:wrap;gap:6px 18px;
+  font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;
+}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:7px;vertical-align:-1px}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 40px;margin-top:30px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 32px;margin-top:30px}
+.block h3{margin-bottom:8px}
+.block p{font-size:16px}
+.block .eq{margin-top:10px}
+
+.eq{
+  font-family:var(--mono);font-size:14px;line-height:1.7;
+  background:var(--surface);border-left:2px solid var(--rule-strong);
+  padding:10px 14px;overflow-x:auto;white-space:pre;
+}
+.eq sub,.eq sup{font-size:.72em}
+.params{
+  display:grid;grid-template-columns:auto 1fr;gap:4px 16px;
+  font-family:var(--mono);font-size:13px;line-height:1.5;margin-top:12px;
+  font-variant-numeric:tabular-nums;
+}
+.params dt{color:var(--muted);margin:0}
+.params dd{margin:0}
+
+table{border-collapse:collapse;width:100%;font-size:15px}
+.tablewrap{overflow-x:auto;margin-top:22px}
+th,td{text-align:left;padding:8px 12px 8px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+td.num,th.num{text-align:right;font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums;padding-right:0;padding-left:12px}
+td code,p code,li code,dd code{font-family:var(--mono);font-size:.88em;background:var(--surface);padding:1px 5px;border:1px solid var(--rule);border-radius:2px}
+
+.arch{width:100%;max-width:100%;height:auto;display:block;margin-top:30px}
+.arch text{font-family:var(--mono);font-size:12.5px;fill:var(--ink)}
+.arch .lbl{fill:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.arch .box{fill:var(--surface);stroke:var(--rule-strong);stroke-width:1}
+.arch .core{fill:var(--surface);stroke:var(--ink);stroke-width:1.5}
+.arch .edge{stroke:var(--rule-strong);stroke-width:1.2;fill:none}
+.arch .edge-strong{stroke:var(--ink);stroke-width:1.4;fill:none}
+
+.steps{list-style:none;padding:0;margin:30px 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
+.steps li{border-top:2px solid var(--ink);padding-top:12px}
+.steps .n{font-family:var(--mono);font-size:12px;color:var(--ember);letter-spacing:.08em}
+.steps h3{margin-top:6px}
+.steps p{font-size:15.5px;margin-top:6px}
+
+.compass{display:block;width:180px;max-width:100%;height:auto}
+.compass text{font-family:var(--mono);font-size:11px;fill:var(--ink)}
+.compass .spoke{stroke:var(--rule-strong);stroke-width:1}
+.compass .hub{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}
+.compass .dot{fill:var(--ink)}
+
+.obs{list-style:none;padding:0;margin:0;display:grid;gap:8px;font-size:15.5px}
+.obs li{display:grid;grid-template-columns:76px 1fr;gap:12px;align-items:baseline;padding-bottom:8px;border-bottom:1px solid var(--rule)}
+.obs .idx{font-family:var(--mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.chart{margin-top:30px}
+.chart .head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;align-items:baseline}
+.chart .head h3{margin:0}
+.chart .key{display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.chart .key i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:0}
+.chart .key i.hollow{background:transparent;border:1.5px solid var(--muted);box-sizing:border-box}
+.chart svg{width:100%;height:auto;display:block;margin-top:14px;overflow:visible}
+.chart .ax{stroke:var(--rule);stroke-width:1}
+.chart .base{stroke:var(--rule-strong);stroke-width:1}
+.chart .tick{font-family:var(--mono);font-size:11.5px;fill:var(--muted)}
+.chart .rowlab{font-family:var(--display);font-variation-settings:"wdth" 105;font-weight:600;font-size:13px;fill:var(--ink)}
+.chart .sub{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+.chart .range{stroke-width:2;stroke-linecap:round}
+.chart .pt{stroke:var(--surface);stroke-width:2}
+.chart .pt.earlier{fill:var(--surface);stroke-width:1.8}
+.chart .hit{fill:transparent;cursor:default}
+.tip{
+  position:fixed;pointer-events:none;z-index:20;
+  font-family:var(--mono);font-size:12px;line-height:1.5;
+  background:var(--surface);color:var(--ink);border:1px solid var(--rule-strong);
+  padding:6px 9px;border-radius:2px;box-shadow:0 4px 14px rgba(0,0,0,.12);
+  white-space:nowrap;opacity:0;transition:opacity .08s;
+}
+.tip.on{opacity:1}
+.tip b{font-weight:500}
+
+.rules{list-style:none;padding:0;margin:26px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 40px}
+.rules li{display:grid;grid-template-columns:20px 1fr;gap:12px;font-size:16px;line-height:1.5;padding-bottom:12px;border-bottom:1px solid var(--rule)}
+.rules li::before{content:"";width:10px;height:10px;margin-top:8px;border:1.5px solid var(--ink);border-radius:1px}
+.rules li b{font-weight:600}
+
+.limits{margin-top:26px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 40px}
+.limits ul{margin:8px 0 0;padding-left:18px;font-size:15.5px;line-height:1.55}
+.limits li{margin-bottom:6px}
+.limits .prop{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-left:8px}
+
+.run{margin-top:26px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 32px}
+.run pre{
+  margin:0;font-family:var(--mono);font-size:13px;line-height:1.65;
+  background:var(--surface);border:1px solid var(--rule);padding:12px 14px;overflow-x:auto;
+}
+.run .lbl{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+
+footer.colophon{
+  margin-top:48px;padding-top:20px;border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.7;
+  display:flex;flex-wrap:wrap;gap:6px 32px;justify-content:space-between;
+}
+
+@media (max-width: 960px){
+  .frame{grid-template-columns:1fr;gap:0}
+  .rail{
+    position:sticky;top:0;height:auto;border-right:0;border-bottom:1px solid var(--rule);
+    padding:12px 0;background:var(--ground);z-index:5;
+    flex-direction:row;align-items:center;gap:16px;
+  }
+  .rail .mark small{display:none}
+  .rail nav{flex-direction:row;overflow-x:auto;gap:0;flex:1;scrollbar-width:none}
+  .rail nav a{grid-template-columns:auto;gap:0;padding:4px 8px;white-space:nowrap}
+  .rail nav a span:last-child{display:none}
+  .rail nav a[aria-current="true"]{box-shadow:inset 0 -2px 0 var(--ember)}
+  .rail .hint{display:none}
+  section.slide{padding-block:48px 40px;scroll-margin-top:64px}
+  .grid2,.grid3,.rules,.limits,.run{grid-template-columns:1fr}
+  .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width: 560px){
+  body{font-size:16px}
+  .steps{grid-template-columns:1fr}
+  .lede{font-size:19px}
+  .obs li{grid-template-columns:64px 1fr}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<div class="frame">
+  <aside class="rail">
+    <div class="mark">Bushfire UAV<br>MARL Lab<small>Cooperative wildfire detection and suppression</small></div>
+    <nav aria-label="Sections" id="nav">
+      <a href="#s1"><span>01</span><span>The question</span></a>
+      <a href="#s2"><span>02</span><span>What it does</span></a>
+      <a href="#s3"><span>03</span><span>One environment</span></a>
+      <a href="#s4"><span>04</span><span>Fire model</span></a>
+      <a href="#s5"><span>05</span><span>Aircraft, sensing</span></a>
+      <a href="#s6"><span>06</span><span>Agent interface</span></a>
+      <a href="#s7"><span>07</span><span>Training</span></a>
+      <a href="#s8"><span>08</span><span>Measured results</span></a>
+      <a href="#s9"><span>09</span><span>Rules of evidence</span></a>
+      <a href="#s10"><span>10</span><span>Limits and next</span></a>
+    </nav>
+    <div class="hint"><kbd>J</kbd> <kbd>K</kbd> or arrow keys<br>move between sections</div>
+  </aside>
+
+  <main>
+
+  <section class="slide" id="s1">
+    <p class="eyebrow"><b>01</b> The question</p>
+    <h1>Can a small UAV team learn to find and put out fires it cannot fully see?</h1>
+    <p class="lede">A seeded simulator for multi-agent reinforcement learning over a real study box in Victoria, with metrics computed from state and nothing invented.</p>
+    <div class="stamp">Research simulation. Not an operational fire-behaviour or UAV command system.</div>
+
+    <figure class="figure">
+      <div class="sim" id="sim">
+        <canvas id="cv" width="720" height="432" aria-label="Animated cellular-automaton wildfire with four UAVs seeking and extinguishing fire fronts"></canvas>
+        <div class="hud" id="hud"><span>t 0 s</span> <span>burning 0</span> <span>out 0</span></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--cell-unburned);border:1px solid var(--rule-strong)"></i>unburned</span>
+        <span><i style="background:var(--cell-burning)"></i>burning</span>
+        <span><i style="background:var(--cell-burned)"></i>burned out</span>
+        <span><i style="background:var(--cell-out)"></i>extinguished by UAV</span>
+        <span><i style="background:var(--uav);border-radius:50%"></i>UAV, greedy nearest-fire</span>
+      </div>
+      <figcaption>Live re-implementation of the repository's fire rule in the browser: 8-neighbour cellular automaton, elliptical wind-driven spread, <b>wind 18 km/h from NW</b>, 80 m cells, stochastic ignition <b>p = 1 − exp(−R(φ)/d · dt)</b>. UAVs follow the greedy expert used to seed training. Illustrative only; the measured results in section 08 come from the Python environment.</figcaption>
+    </figure>
+  </section>
+
+  <section class="slide" id="s2">
+    <p class="eyebrow"><b>02</b> What the laboratory does</p>
+    <h2>A supervisor-facing workbench for seeded, comparable episodes</h2>
+    <div class="stack">
+      <p>The user selects a real WGS84 study envelope in Victoria, places ignition points, sets wind and fuel, sizes the fleet and its sensor, then runs the same scenario under a scripted expert or a loaded MARL checkpoint. Every dashboard number is derived from simulation state. Undefined values return <code>null</code> and display as <strong>N/A</strong>.</p>
+      <p>The same scenario JSON and seed reproduce the same trajectory. Multi-seed comparison runs headless and reports mean, sample SD and a Student-t 95% interval. The API marks <code>significance_tested: false</code>; no hypothesis test is performed, and the report does not claim one.</p>
+    </div>
+    <div class="grid3">
+      <div class="block">
+        <h3>Study areas</h3>
+        <p>Kinglake / Central Highlands, Grampians, East Gippsland, Otway Ranges, Alpine foothills. Each is a searchable envelope, not a legal boundary. Kinglake is about 5.5 by 8 km.</p>
+      </div>
+      <div class="block">
+        <h3>Policies</h3>
+        <p>Three trained actors: independent DQN, MAPPO, MADDPG. A greedy nearest-known-fire expert stays available for training rollouts. A missing checkpoint is labelled <em>untrained</em> and acts randomly.</p>
+      </div>
+      <div class="block">
+        <h3>Views and exports</h3>
+        <p>MapLibre 2D by default; Cesium 3D lazy-loaded from the same <code>SimState</code>. Per-step WebSocket ticks, an engine event log, replay, JSON and CSV export.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s3">
+    <p class="eyebrow"><b>03</b> One environment, two paths</p>
+    <h2>Training and deployment call the same <span style="font-family:var(--mono);font-weight:500;font-size:.8em">WildfireEnv.step()</span></h2>
+    <p class="wide" style="margin-top:18px;max-width:66ch">Visualisation is never required to train. The headless trainer and the FastAPI service run the identical NumPy environment, so a checkpoint evaluated offline behaves the same on the map.</p>
+
+    <svg class="arch" viewBox="0 0 900 330" role="img" aria-label="Architecture: scenario and seed enter WildfireEnv.step, which feeds both the headless trainer producing checkpoints and the FastAPI deployment serving MapLibre and Cesium views">
+      <text x="450" y="28" text-anchor="middle" class="lbl">scenario json + seed</text>
+      <path class="edge-strong" d="M450 36 V70"/>
+      <rect class="core" x="330" y="70" width="240" height="56" rx="2"/>
+      <text x="450" y="94" text-anchor="middle">WildfireEnv.reset / step</text>
+      <text x="450" y="112" text-anchor="middle" class="lbl">python · numpy · dt = 1 s</text>
+
+      <path class="edge-strong" d="M450 126 V150 H230 V184"/>
+      <path class="edge-strong" d="M450 150 H670 V184"/>
+      <path class="edge-strong" d="M450 126 V184" opacity=".35"/>
+
+      <rect class="box" x="120" y="184" width="220" height="56" rx="2"/>
+      <text x="230" y="208" text-anchor="middle">headless trainer</text>
+      <text x="230" y="226" text-anchor="middle" class="lbl">train_mappo_maddpg.py</text>
+
+      <rect class="box" x="340" y="184" width="220" height="56" rx="2"/>
+      <text x="450" y="208" text-anchor="middle">experiments runner</text>
+      <text x="450" y="226" text-anchor="middle" class="lbl">multi-seed · mean ± sd · t-ci</text>
+
+      <rect class="box" x="560" y="184" width="220" height="56" rx="2"/>
+      <text x="670" y="208" text-anchor="middle">FastAPI + WebSocket</text>
+      <text x="670" y="226" text-anchor="middle" class="lbl">/api · /ws/simulations/{id}</text>
+
+      <path class="edge" d="M230 240 V276"/>
+      <rect class="box" x="140" y="276" width="180" height="40" rx="2"/>
+      <text x="230" y="300" text-anchor="middle">checkpoint .pt</text>
+
+      <path class="edge" d="M320 296 H340 V214" opacity=".6"/>
+      <path class="edge" d="M320 296 H560 V240" opacity=".6"/>
+
+      <path class="edge" d="M670 240 V262 H610 V276"/>
+      <path class="edge" d="M670 262 H730 V276"/>
+      <rect class="box" x="540" y="276" width="140" height="40" rx="2"/>
+      <text x="610" y="300" text-anchor="middle">MapLibre 2D</text>
+      <rect class="box" x="690" y="276" width="140" height="40" rx="2"/>
+      <text x="760" y="300" text-anchor="middle">Cesium 3D</text>
+    </svg>
+
+    <div class="grid2">
+      <div class="block">
+        <h3>Coordinate discipline</h3>
+        <p>WGS84 for storage and display. All distances, headings and grids use a local azimuthal-equidistant metre frame with origin at the AOI centroid. Nothing is measured in raw latitude and longitude.</p>
+      </div>
+      <div class="block">
+        <h3>Clock discipline</h3>
+        <p>Fixed timestep <code>dt</code>, default 1 s. The UI speed multiplier changes wall-clock sleep only. The displayed clock is <code>environment.time_s</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s4">
+    <p class="eyebrow"><b>04</b> Fire model</p>
+    <h2>A simplified elliptical cellular automaton, labelled as such</h2>
+    <p style="margin-top:18px">Cells are <code>UNBURNED</code>, <code>BURNING</code>, <code>BURNED</code>, <code>UNBURNABLE</code> or <code>EXTINGUISHED</code>. Only UAV suppression produces <code>EXTINGUISHED</code>; natural burnout is <code>BURNED</code>. Detection never changes a cell.</p>
+
+    <div class="grid2">
+      <div class="block">
+        <h3>Head rate of spread</h3>
+        <div class="eq">R<sub>head</sub> = R<sub>0</sub> · fuel · (1 + a · U<sup>b</sup>)</div>
+        <dl class="params">
+          <dt>R<sub>0</sub></dt><dd>0.35 m/s default, 0.22 in evaluation</dd>
+          <dt>a, b</dt><dd>0.18, 1.15</dd>
+          <dt>fuel</dt><dd>uniform 0.85 unless a vegetation layer is supplied</dd>
+          <dt>U</dt><dd>wind speed, m/s, constant for the episode</dd>
+        </dl>
+      </div>
+      <div class="block">
+        <h3>Elliptical scaling toward a neighbour</h3>
+        <div class="eq">R(φ) = R<sub>head</sub> · (1 − e) / (1 − e · cos φ)
+e    = clip((LB − 1)/(LB + 1), 0, 0.95)
+LB   = 1 + c · U</div>
+        <dl class="params">
+          <dt>φ</dt><dd>heading to neighbour relative to downwind</dd>
+          <dt>c</dt><dd>0.25 (length-to-breadth vs wind)</dd>
+          <dt>wind</dt><dd>meteorological FROM, 0° = N, clockwise</dd>
+        </dl>
+      </div>
+      <div class="block">
+        <h3>Ignition</h3>
+        <div class="eq">stochastic:     p = 1 − exp(−R(φ)/d · dt)
+deterministic:  Σ R(φ)/d · dt ≥ 1  (Huygens-style arrival)</div>
+        <p style="margin-top:10px">Stochastic mode draws from <code>numpy.random.Generator(seed)</code>. Deterministic mode accumulates exposure per unburned cell.</p>
+      </div>
+      <div class="block">
+        <h3>Burnout and slope</h3>
+        <div class="eq">T<sub>burn</sub> = T<sub>0</sub> / max(fuel, 0.15),  T<sub>0</sub> = 180 s</div>
+        <p style="margin-top:10px">Slope multiplies rate of spread only when a DEM is loaded and <code>slope_is_real</code> is set. Bundled runs use slope = 0.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s5">
+    <p class="eyebrow"><b>05</b> Aircraft, sensing, suppression, comms</p>
+    <h2>Point-mass aircraft, Bernoulli sensing, overlap-only suppression</h2>
+
+    <div class="grid2">
+      <div class="block">
+        <h3>UAV dynamics</h3>
+        <p>Kinematic point mass in the local ENU frame. Speed, climb rate and turn rate are clipped to configured maxima; position is clipped to the AOI. Wind does not advect the airframe, by documented simplification.</p>
+        <div class="eq">P = P<sub>hover</sub> + k · v²       battery<sub>J</sub> −= P · dt
+return to base when battery<sub>J</sub> / capacity ≤ threshold</div>
+        <dl class="params">
+          <dt>capacity</dt><dd>180 kJ default</dd>
+          <dt>cruise</dt><dd>16 m/s at 120 m in evaluation</dd>
+        </dl>
+      </div>
+      <div class="block">
+        <h3>Sensor</h3>
+        <p>A true detection of a source needs a <code>BURNING</code> cell inside range and a successful Bernoulli trial. With no fire in range, a false report is emitted with probability <code>p_fp</code>. No line-of-sight, smoke or weather attenuation.</p>
+        <div class="eq">p<sub>true</sub> = p<sub>det</sub> · (1 − p<sub>fn</sub>) · clip(0.25 + 0.75 · I, 0, 1)</div>
+        <dl class="params">
+          <dt>range</dt><dd>800 m in evaluation</dd>
+          <dt>I</dt><dd>cell intensity, 0 to 1</dd>
+        </dl>
+      </div>
+      <div class="block">
+        <h3>Suppression</h3>
+        <p>Detecting a fire does not put it out. A UAV extinguishes a source only when its planimetric distance to the fire point is at most <code>suppression_range_m</code>, default <strong>120 m</strong>. Then every remaining <code>BURNING</code> cell of that source becomes <code>EXTINGUISHED</code> and the source stops spreading.</p>
+      </div>
+      <div class="block">
+        <h3>Communication, coverage, separation</h3>
+        <p>An undirected link exists when distance is within both ranges and both batteries are positive; drops are i.i.d. Coverage is explored eligible cells over eligible cells. Near miss below the configured separation with |Δz| under 15 m; collision below 8 m horizontal.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s6">
+    <p class="eyebrow"><b>06</b> What an agent sees and does</p>
+    <h2>Partial observability at execution, a team reward in training</h2>
+    <p style="margin-top:18px">Each UAV acts from a 57-element observation and picks one of nine discrete actions. Known fires at execution are the agent's own true detections plus successfully delivered messages, never the global list, unless <code>allow_global_state</code> is switched on for training.</p>
+
+    <div class="grid2" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)">
+      <div class="block">
+        <h3>Observation, length 57, float32</h3>
+        <ul class="obs">
+          <li><span class="idx">0 to 10</span><span>Own pose, battery, wind, normalised time. Heading as sin and cos; positions over AOI extent; wind over 40 m/s.</span></li>
+          <li><span class="idx">11 to 19</span><span>Up to three known active fires as (dx, dy, intensity). Extinguished and burned-out sources are dropped so the agent seeks what remains.</span></li>
+          <li><span class="idx">20 to 31</span><span>Up to three UAVs inside communication range.</span></li>
+          <li><span class="idx">32 to 56</span><span>5 × 5 local coverage patch.</span></li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Action, discrete-9</h3>
+        <svg class="compass" viewBox="0 0 180 180" role="img" aria-label="Compass rose with eight heading actions and a central hover action">
+          <g class="spoke">
+            <line x1="90" y1="90" x2="90" y2="22"/><line x1="90" y1="90" x2="138" y2="42"/>
+            <line x1="90" y1="90" x2="158" y2="90"/><line x1="90" y1="90" x2="138" y2="138"/>
+            <line x1="90" y1="90" x2="90" y2="158"/><line x1="90" y1="90" x2="42" y2="138"/>
+            <line x1="90" y1="90" x2="22" y2="90"/><line x1="90" y1="90" x2="42" y2="42"/>
+          </g>
+          <circle class="hub" cx="90" cy="90" r="22"/>
+          <text x="90" y="94" text-anchor="middle">HOVER</text>
+          <g class="dot">
+            <circle cx="90" cy="22" r="3"/><circle cx="138" cy="42" r="3"/><circle cx="158" cy="90" r="3"/><circle cx="138" cy="138" r="3"/>
+            <circle cx="90" cy="158" r="3"/><circle cx="42" cy="138" r="3"/><circle cx="22" cy="90" r="3"/><circle cx="42" cy="42" r="3"/>
+          </g>
+          <text x="90" y="13" text-anchor="middle">N</text><text x="150" y="36" text-anchor="middle">NE</text>
+          <text x="171" y="94" text-anchor="middle">E</text><text x="150" y="152" text-anchor="middle">SE</text>
+          <text x="90" y="174" text-anchor="middle">S</text><text x="30" y="152" text-anchor="middle">SW</text>
+          <text x="9" y="94" text-anchor="middle">W</text><text x="30" y="36" text-anchor="middle">NW</text>
+        </svg>
+        <p style="margin-top:10px;font-size:15.5px">Mapped to a target heading at cruise speed, then constrained by <code>apply_action</code>. HOVER at a fire extinguishes only inside suppression range.</p>
+      </div>
+    </div>
+
+    <div class="block" style="margin-top:32px">
+      <h3>Reward, shared by all agents in the step</h3>
+      <div class="eq">R = α N<sub>detected</sub> + ζ N<sub>cells out</sub> + η N<sub>fires out</sub> + β Δcoverage − γ Δenergy − δ N<sub>collisions</sub> − ε Δoverlap</div>
+      <dl class="params" style="grid-template-columns:repeat(7,auto);justify-content:start;gap:4px 22px">
+        <dt>α</dt><dt>ζ</dt><dt>η</dt><dt>β</dt><dt>γ</dt><dt>δ</dt><dt>ε</dt>
+        <dd>8</dd><dd>0.35</dd><dd>16</dd><dd>0.4</dd><dd>0.04</dd><dd>8</dd><dd>0.3</dd>
+      </dl>
+      <p style="margin-top:12px">Suppression is weighted twice as much as detection. The reward is an optimisation signal for the team, not a classification accuracy, and it is reported as such.</p>
+    </div>
+  </section>
+
+  <section class="slide" id="s7">
+    <p class="eyebrow"><b>07</b> Training pipeline</p>
+    <h2>Clone the expert, then fine-tune without forgetting how to hover</h2>
+    <p style="margin-top:18px">An earlier short run learned to approach fires but not the final hover that completes suppression. The current trainer is built around that failure. Steps are ordered; each depends on the previous.</p>
+
+    <ol class="steps">
+      <li><span class="n">STEP 1</span><h3>Expert rollouts</h3><p>Greedy nearest-known-fire policy generates trajectories with fires visible. Lawnmower is not cloned; it does not teach suppression.</p></li>
+      <li><span class="n">STEP 2</span><h3>Behavioural cloning</h3><p>Near-fire HOVER is oversampled. Cloning repeats until the holdout extinguished count is measured at 1.5 to 2 or better. Adam, lr 8e-4, 12 epochs, batch 256.</p></li>
+      <li><span class="n">STEP 3</span><h3>MAPPO and MADDPG fine-tune</h3><p>Central critic, decentralised actor. A BC regulariser and decaying expert mixing keep the suppression behaviour. Actor lr 8e-5, critic 2e-4; MADDPG uses Gumbel-Softmax τ 0.8 and target τ 0.02.</p></li>
+      <li><span class="n">STEP 4</span><h3>Keep the best holdout</h3><p>The saved checkpoint is the one with the highest measured holdout extinguish count on seeds 9000 to 9002. Nothing is written that was not measured.</p></li>
+    </ol>
+
+    <div class="grid2" style="margin-top:36px">
+      <div class="block">
+        <h3>Actor network</h3>
+        <div class="eq">57 → 128 → 128 → 9     tanh · tanh · logits
+critic (MAPPO):  4 × 57 → 128 → 128 → 1
+Q (MADDPG):      4 × (57 + 9) → 128 → 128 → 1</div>
+      </div>
+      <div class="block">
+        <h3>Training scenario</h3>
+        <dl class="params">
+          <dt>UAVs</dt><dd>4</dd>
+          <dt>episode</dt><dd>220 s at dt = 1 s</dd>
+          <dt>episodes</dt><dd>16 expert · 36 MAPPO · 36 MADDPG · 24 DQN</dd>
+          <dt>compute</dt><dd>CPU, no visualisation</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s8">
+    <p class="eyebrow"><b>08</b> Measured results</p>
+    <h2>Fires extinguished out of four, two seeds, Kinglake</h2>
+    <p style="margin-top:18px">Headless evaluation from <code>scripts/eval_policies.py</code>: six UAVs, four random ignitions, 240 s, wind 18 km/h from NW, sensor 800 m, suppression 120 m, seeds 101 and 202. Two seeds is a smoke test, not a study; the interactive compare panel defaults to three seeds so a laptop finishes during a demonstration, and a paper run should raise this to 30.</p>
+
+    <div class="chart" id="chart1">
+      <div class="head">
+        <h3>Sources extinguished per episode</h3>
+        <div class="key">
+          <span><i style="background:var(--learned)"></i>learned actor</span>
+          <span><i style="background:var(--scripted)"></i>scripted expert</span>
+          <span><i style="background:var(--control)"></i>random control</span>
+          <span><i class="hollow"></i>earlier checkpoint set</span>
+        </div>
+      </div>
+      <svg id="svg1" viewBox="0 0 860 300" role="img" aria-label="Dot plot of fires extinguished out of four for each policy on seeds 101 and 202, final checkpoints filled and earlier checkpoints hollow"></svg>
+    </div>
+
+    <div class="chart" id="chart2">
+      <div class="head">
+        <h3>Episode reward, final checkpoints</h3>
+      </div>
+      <svg id="svg2" viewBox="0 0 860 240" role="img" aria-label="Dot plot of episode reward for each policy on seeds 101 and 202"></svg>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr>
+          <th>Policy</th><th>Algorithm</th>
+          <th class="num">Ext. 101</th><th class="num">Ext. 202</th>
+          <th class="num">Cells out 101</th><th class="num">Cells out 202</th>
+          <th class="num">Coverage 101</th><th class="num">Coverage 202</th>
+          <th class="num">Reward 101</th><th class="num">Reward 202</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="stack" style="margin-top:28px">
+      <p><strong>What changed between checkpoint sets.</strong> Before the current recipe, MAPPO extinguished 4 then 2 sources and posted a reward of −904 on seed 202, a collision-penalty signature. DQN managed 2 then 0. After adding HOVER oversampling, the BC regulariser and best-holdout selection, MAPPO reached 4 of 4 on both seeds and DQN 3 and 4. A later MADDPG-only re-evaluation (<code>eval_maddpg.json</code>) also recorded 4 of 4 on both seeds.</p>
+      <p><strong>Read with care.</strong> Every policy detected all four fires; detection is the easy half. Under <code>allow_global_state=True</code> the scripted baselines converge on the same fire-seeking trajectories as the greedy expert, so this table cannot separate them, and the learned actors are matching the expert they were cloned from rather than exceeding it. Whether they generalise where the expert does not is the open question for the next experiment.</p>
+    </div>
+  </section>
+
+  <section class="slide" id="s9">
+    <p class="eyebrow"><b>09</b> Rules of evidence</p>
+    <h2>Conventions the codebase enforces so numbers can be trusted</h2>
+    <ul class="rules">
+      <li><span><b>Metrics come from state.</b> Every dashboard value is computed in <code>metrics.py</code> from the live environment. Undefined returns <code>null</code>, shown as N/A.</span></li>
+      <li><span><b>Detection is not suppression.</b> A green pin is a detection report. Extinguished counts require a UAV inside suppression range of a burning cell.</span></li>
+      <li><span><b>Untrained is labelled.</b> A missing or incompatible checkpoint yields <code>UntrainedMARLPolicy</code> with <code>trained=False</code>. It is never reported as a MARL result.</span></li>
+      <li><span><b>Real and simulated layers are separate.</b> AOI envelopes and imagery tiles are labelled real. Fire, UAV and coverage layers are labelled simulated. Missing datasets are placeholders, not invented roads or terrain.</span></li>
+      <li><span><b>Reproducibility is tested.</b> Scenario JSON plus seed plus policy fixes the trajectory. 33 tests across 11 files cover fire, sensor, suppression, coverage, communication, collision, metrics and identity of repeated runs.</span></li>
+      <li><span><b>No unearned significance.</b> Multi-seed reports print mean ± SD with a t-interval and set <code>significance_tested: false</code>. Coordination-efficiency slogans without a formula are not implemented.</span></li>
+    </ul>
+  </section>
+
+  <section class="slide" id="s10">
+    <p class="eyebrow"><b>10</b> Limitations and next steps</p>
+    <h2>What the model is not, and what would move it forward</h2>
+    <div class="limits">
+      <div>
+        <h3>Documented simplifications</h3>
+        <ul>
+          <li>Fire: elliptical cellular spread, not Phoenix, SPARK, Prometheus or FARSITE.</li>
+          <li>UAV: kinematic point mass; no wind drift, rotor dynamics or airspace rules.</li>
+          <li>Sensor: planimetric range plus Bernoulli; no terrain occlusion, smoke or camera model.</li>
+          <li>Suppression: overlap rule with fixed intensity decay; not a retardant or water-drop model.</li>
+          <li>Communication: geometric range with i.i.d. drops; not a radio channel.</li>
+          <li>Fuel uniform, slope zero, wind constant, unless the user supplies GeoJSON or a DEM. 3D mode renders an ellipsoid.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Proposed next experiments <span class="prop">not yet run</span></h3>
+        <ul>
+          <li>Evaluate at 30 seeds with the t-interval, holding scenario fields fixed except policy and seed.</li>
+          <li>Withhold <code>allow_global_state</code> at evaluation so learned actors must rely on own detections and delivered messages, where the greedy expert has no privileged view.</li>
+          <li>Vary ignition count, wind and communication drop rate to find where cloning of the expert stops holding.</li>
+          <li>Add a vegetation fuel layer and DEM slope for Kinglake so the fire model uses real inputs.</li>
+          <li>Report per-fire detection time and time to first detection alongside suppression counts.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="run">
+      <div>
+        <div class="lbl">Backend, Python 3.11 with uv</div>
+<pre>cd backend
+uv venv .venv &amp;&amp; source .venv/bin/activate
+uv pip install -e ".[dev]"
+uv run pytest
+uv run uvicorn app.main:app --port 8000</pre>
+      </div>
+      <div>
+        <div class="lbl">Frontend, then train and evaluate</div>
+<pre>cd frontend &amp;&amp; npm install &amp;&amp; npm run dev
+cd backend
+uv run python scripts/train_mappo_maddpg.py --outdir data/checkpoints
+uv run python scripts/eval_policies.py --seeds 101 202</pre>
+      </div>
+    </div>
+
+    <footer class="colophon">
+      <span>Source: <a href="https://github.com/Manithj/bushfire-uav-marl">github.com/Manithj/bushfire-uav-marl</a></span>
+      <span>Stack: FastAPI · NumPy · PyTorch · PettingZoo · React · MapLibre · Cesium</span>
+      <span>Manith Marapperuma · 2026</span>
+    </footer>
+  </section>
+
+  </main>
+</div>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  /* ---------- theme tokens ---------- */
+  function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+  /* ---------- section rail + progress ---------- */
+  var links = Array.prototype.slice.call(document.querySelectorAll('#nav a'));
+  var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+  var progress = document.getElementById('progress');
+  function setCurrent(i){
+    links.forEach(function(a,k){ if(k===i) a.setAttribute('aria-current','true'); else a.removeAttribute('aria-current'); });
+  }
+  var current = 0;
+  function onScroll(){
+    var y = window.scrollY + window.innerHeight*0.35;
+    var idx = 0;
+    for (var i=0;i<sections.length;i++){ if (sections[i].offsetTop <= y) idx = i; }
+    if (idx !== current){ current = idx; setCurrent(idx); }
+    var h = document.documentElement;
+    var frac = h.scrollHeight>h.clientHeight ? window.scrollY/(h.scrollHeight-h.clientHeight) : 0;
+    progress.style.width = (frac*100).toFixed(2)+'%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  setCurrent(0); onScroll();
+  document.addEventListener('keydown', function(e){
+    if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+    var next = null;
+    if (e.key==='j' || e.key==='ArrowDown' || e.key==='PageDown') next = Math.min(current+1, sections.length-1);
+    if (e.key==='k' || e.key==='ArrowUp' || e.key==='PageUp') next = Math.max(current-1, 0);
+    if (next===null) return;
+    e.preventDefault();
+    sections[next].scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
+  });
+
+  /* ---------- fire cellular automaton ---------- */
+  var W = 120, H = 72, CELL = 80, DT = 30;
+  var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var hud = document.getElementById('hud');
+  var state = new Uint8Array(W*H), age = new Float32Array(W*H);
+  var R0 = 0.22, FUEL = 0.85, A = 0.18, B = 1.15, C = 0.25, T0 = 180;
+  var U = 18/3.6;
+  var Rhead = R0*FUEL*(1 + A*Math.pow(U,B));
+  var LB = 1 + C*U, ECC = Math.min(Math.max((LB-1)/(LB+1),0),0.95);
+  var windFrom = 315*Math.PI/180, down = windFrom + Math.PI;
+  var Tburn = T0/Math.max(FUEL,0.15);
+  var nb = [];
+  for (var dr=-1; dr<=1; dr++) for (var dc=-1; dc<=1; dc++){
+    if (!dr && !dc) continue;
+    var heading = Math.atan2(dc, -dr);
+    var phi = heading - down;
+    var R = Rhead*(1-ECC)/(1-ECC*Math.cos(phi));
+    var d = CELL*Math.hypot(dr,dc);
+    nb.push({dr:dr, dc:dc, p: 1-Math.exp(-R/d*DT)});
+  }
+  var uavs = [], t = 0, frame = 0, colors = {};
+  function readColors(){
+    colors = { un: tok('--cell-unburned'), burn: tok('--cell-burning'), burned: tok('--cell-burned'), out: tok('--cell-out'), uav: tok('--uav'), ring: tok('--ash') };
+  }
+  function ignite(){
+    for (var k=0;k<40;k++){
+      var r = 6+Math.floor(Math.random()*(H-12)), c = 6+Math.floor(Math.random()*(W-12));
+      var i = r*W+c;
+      if (state[i]===0){
+        state[i]=1; age[i]=0;
+        state[i+1]=1; state[i+W]=1; state[i+W+1]=1;
+        return;
+      }
+    }
+  }
+  function reset(){
+    state.fill(0); age.fill(0); t = 0;
+    uavs = [];
+    for (var k=0;k<4;k++) uavs.push({x: W*0.5 + (k-1.5)*6, y: H-4, h: 0});
+    ignite(); ignite(); ignite(); ignite();
+    for (var k2=0;k2<8;k2++){ stepFire(); t+=DT; }
+  }
+  function stepFire(){
+    var next = new Uint8Array(state);
+    for (var r=0;r<H;r++) for (var c=0;c<W;c++){
+      var i = r*W+c;
+      if (state[i]!==1) continue;
+      age[i] += DT;
+      if (age[i] >= Tburn){ next[i]=2; continue; }
+      for (var n=0;n<8;n++){
+        var rr = r+nb[n].dr, cc = c+nb[n].dc;
+        if (rr<0||rr>=H||cc<0||cc>=W) continue;
+        var j = rr*W+cc;
+        if (state[j]===0 && next[j]===0 && Math.random()<nb[n].p){ next[j]=1; age[j]=0; }
+      }
+    }
+    state = next;
+  }
+  function stepUAVs(){
+    var speedCells = 1.6;
+    var claimed = [];
+    uavs.forEach(function(u){
+      var best=-1, bd=1e9;
+      for (var r=0;r<H;r++) for (var c=0;c<W;c++){
+        if (state[r*W+c]!==1) continue;
+        var taken=false;
+        for (var q=0;q<claimed.length;q++){ if (Math.hypot(claimed[q][0]-c, claimed[q][1]-r) < 8){ taken=true; break; } }
+        if (taken) continue;
+        var dd = Math.hypot(c-u.x, r-u.y);
+        if (dd<bd){ bd=dd; best=r*W+c; }
+      }
+      if (best<0){ u.x += Math.cos(u.h+Math.PI/2)*0.3; u.y += Math.sin(u.h+Math.PI/2)*0.3; return; }
+      var tr = Math.floor(best/W), tc = best%W;
+      claimed.push([tc,tr]);
+      var dx = tc-u.x, dy = tr-u.y, dist = Math.hypot(dx,dy);
+      u.h = Math.atan2(dx, -dy);
+      if (dist > 1.5){
+        var s = Math.min(speedCells, dist);
+        u.x += dx/dist*s; u.y += dy/dist*s;
+      } else {
+        var rad = 2;
+        for (var r2=Math.max(0,tr-rad); r2<=Math.min(H-1,tr+rad); r2++)
+          for (var c2=Math.max(0,tc-rad); c2<=Math.min(W-1,tc+rad); c2++){
+            if (state[r2*W+c2]===1 && Math.hypot(r2-tr,c2-tc)<=rad) state[r2*W+c2]=3;
+          }
+      }
+      u.x = Math.min(Math.max(u.x,0),W-1); u.y = Math.min(Math.max(u.y,0),H-1);
+    });
+  }
+  function draw(){
+    var cw = cv.width/W, ch = cv.height/H;
+    ctx.fillStyle = colors.un; ctx.fillRect(0,0,cv.width,cv.height);
+    var burning=0, out=0;
+    for (var r=0;r<H;r++) for (var c=0;c<W;c++){
+      var s = state[r*W+c];
+      if (s===0) continue;
+      if (s===1){ burning++; ctx.fillStyle = colors.burn; }
+      else if (s===2) ctx.fillStyle = colors.burned;
+      else { out++; ctx.fillStyle = colors.out; }
+      ctx.fillRect(c*cw, r*ch, cw+0.5, ch+0.5);
+    }
+    uavs.forEach(function(u){
+      var x = (u.x+0.5)*cw, y = (u.y+0.5)*ch;
+      ctx.strokeStyle = colors.ring; ctx.globalAlpha = 0.35; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(x,y, 800/CELL*cw, 0, Math.PI*2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = colors.uav;
+      ctx.save(); ctx.translate(x,y); ctx.rotate(u.h);
+      ctx.beginPath(); ctx.moveTo(0,-7); ctx.lineTo(5,6); ctx.lineTo(0,3); ctx.lineTo(-5,6); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    });
+    hud.innerHTML = '<span>t '+t+' s</span> <span>burning '+burning+'</span> <span>out '+out+'</span>';
+    return burning;
+  }
+  function tick(){
+    stepFire(); stepUAVs(); t += DT; frame++;
+    if (frame % 22 === 0) ignite();
+    var burning = draw();
+    if (frame > 120 && burning===0) reset();
+    if (frame > 700){ frame = 0; reset(); }
+  }
+  readColors(); reset();
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  if (reduce.matches){
+    for (var k=0;k<20;k++){ stepFire(); stepUAVs(); t+=DT; }
+    draw();
+  } else {
+    var last = 0;
+    function loop(ts){
+      if (ts - last > 110){ last = ts; tick(); }
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  }
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ readColors(); draw(); });
+  new MutationObserver(function(){ readColors(); draw(); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+
+  /* ---------- results ---------- */
+  var rows = [
+    {name:'MAPPO',  algo:'mappo',              kind:'learned',  ext:[4,4], cells:[70,86], cov:[0.571,0.590], rew:[120.5,126.1], earlier:[4,2]},
+    {name:'MADDPG', algo:'maddpg',             kind:'learned',  ext:[3,2], cells:[38,52], cov:[0.600,0.547], rew:[93.4,82.2],   earlier:[4,3]},
+    {name:'DQN',    algo:'independent dqn',    kind:'learned',  ext:[3,4], cells:[44,80], cov:[0.578,0.570], rew:[95.4,124.0],  earlier:[2,0]},
+    {name:'Greedy', algo:'nearest known fire', kind:'scripted', ext:[4,4], cells:[50,81], cov:[0.560,0.552], rew:[113.5,124.4], earlier:null},
+    {name:'Random', algo:'uniform random',     kind:'control',  ext:[0,0], cells:[0,0],   cov:[0.560,0.568], rew:[24.1,8.1],    earlier:null}
+  ];
+  var seeds = [101,202];
+  var tip = document.getElementById('tip');
+  function showTip(e, html){ tip.innerHTML = html; tip.classList.add('on'); moveTip(e); }
+  function moveTip(e){ tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY+14)+'px'; }
+  function hideTip(){ tip.classList.remove('on'); }
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, text){
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (text!=null) n.textContent = text;
+    return n;
+  }
+  function colorFor(kind){ return kind==='learned' ? 'var(--learned)' : kind==='scripted' ? 'var(--scripted)' : 'var(--control)'; }
+
+  function dotPlot(svg, opts){
+    var left = 120, right = 20, top = 28, rowH = opts.rowH, width = 860;
+    var plotW = width-left-right;
+    var domain = opts.domain, ticks = opts.ticks;
+    function x(v){ return left + (v-domain[0])/(domain[1]-domain[0])*plotW; }
+    ticks.forEach(function(v){
+      svg.appendChild(el('line',{x1:x(v),x2:x(v),y1:top-6,y2:top+rowH*rows.length,'class':'ax'}));
+      svg.appendChild(el('text',{x:x(v),y:top-12,'text-anchor':'middle','class':'tick'}, opts.fmt(v)));
+    });
+    svg.appendChild(el('line',{x1:x(domain[0]),x2:x(domain[0]),y1:top-6,y2:top+rowH*rows.length,'class':'base'}));
+    svg.appendChild(el('text',{x:width-right,y:top+rowH*rows.length+18,'text-anchor':'end','class':'sub'}, opts.axisLabel));
+    rows.forEach(function(r,i){
+      var cy = top + rowH*i + rowH/2;
+      svg.appendChild(el('text',{x:left-14,y:cy+1,'text-anchor':'end','class':'rowlab'}, r.name));
+      svg.appendChild(el('text',{x:left-14,y:cy+14,'text-anchor':'end','class':'sub'}, r.algo));
+      var vals = opts.get(r);
+      var col = colorFor(r.kind);
+      var lo = Math.min(vals[0],vals[1]), hi = Math.max(vals[0],vals[1]);
+      if (hi>lo) svg.appendChild(el('line',{x1:x(lo),x2:x(hi),y1:cy,y2:cy,stroke:col,'class':'range',opacity:.45}));
+      if (opts.earlier && r.earlier){
+        r.earlier.forEach(function(v,s){
+          var offs = s===0 ? -3 : 3;
+          svg.appendChild(el('circle',{cx:x(v),cy:cy+offs,r:5,style:'stroke:'+col,'class':'pt earlier'}));
+        });
+      }
+      vals.forEach(function(v,s){
+        var offs = vals[0]===vals[1] ? (s===0?-3:3) : 0;
+        svg.appendChild(el('circle',{cx:x(v),cy:cy+offs,r:5.5,fill:col,'class':'pt'}));
+      });
+      var hit = el('rect',{x:left,y:top+rowH*i,width:plotW,height:rowH,'class':'hit'});
+      hit.addEventListener('mouseenter', function(e){
+        var h = '<b>'+r.name+'</b> · '+r.algo+'<br>';
+        seeds.forEach(function(sd,k){ h += 'seed '+sd+': '+opts.fmt(vals[k]); if (opts.earlier && r.earlier) h += ' (earlier '+opts.fmt(r.earlier[k])+')'; h += '<br>'; });
+        showTip(e, h.replace(/<br>$/,''));
+      });
+      hit.addEventListener('mousemove', moveTip);
+      hit.addEventListener('mouseleave', hideTip);
+      svg.appendChild(hit);
+    });
+    svg.setAttribute('viewBox','0 0 '+width+' '+(top+rowH*rows.length+26));
+  }
+  dotPlot(document.getElementById('svg1'), {
+    rowH:50, domain:[0,4], ticks:[0,1,2,3,4], fmt:function(v){return String(v);}, axisLabel:'sources extinguished, of 4',
+    get:function(r){return r.ext;}, earlier:true
+  });
+  dotPlot(document.getElementById('svg2'), {
+    rowH:40, domain:[0,140], ticks:[0,35,70,105,140], fmt:function(v){return v.toFixed(0);}, axisLabel:'episode reward',
+    get:function(r){return r.rew;}, earlier:false
+  });
+
+  var tb = document.getElementById('tbody');
+  rows.forEach(function(r){
+    var tr = document.createElement('tr');
+    function td(v, num){ var c = document.createElement('td'); if (num) c.className='num'; c.textContent = v; tr.appendChild(c); }
+    td(r.name); td(r.algo);
+    td(r.ext[0],1); td(r.ext[1],1); td(r.cells[0],1); td(r.cells[1],1);
+    td(r.cov[0].toFixed(2),1); td(r.cov[1].toFixed(2),1); td(r.rew[0].toFixed(1),1); td(r.rew[1].toFixed(1),1);
+    tb.appendChild(tr);
+  });
+})();
+</script>
+</body>
+</html>

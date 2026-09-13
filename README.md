@@ -49,6 +49,8 @@ Then choose policy `dqn`, `mappo`, or `maddpg`. An absent checkpoint is labeled 
 
 ## Documentation
 
+Presentation site (GitHub Pages, served from `docs/`): https://manithj.github.io/bushfire-uav-marl/
+
 | File | Contents |
 | --- | --- |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Modules, training vs deployment |

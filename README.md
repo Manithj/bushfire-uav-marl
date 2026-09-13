@@ -1,4 +1,4 @@
-# Bushfire UAV MARL Laboratory
+# Bushfire UAV MARL System
 
 Research-grade interactive simulator for **multi-agent reinforcement learning** on cooperative wildfire *detection* with autonomous UAVs.
 

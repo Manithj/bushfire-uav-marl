@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bushfire UAV MARL Laboratory</title>
-<meta name="description" content="A seeded, research-grade simulator for cooperative wildfire detection and suppression with autonomous UAVs, trained with MAPPO, MADDPG and independent DQN.">
+<meta name="description" content="A simulation where a team of autonomous drones learns to search Victorian bushland, spot fires early and put them out, trained with three multi-agent reinforcement learning methods.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -117,10 +117,10 @@ a:hover{text-decoration-color:var(--ink)}
   font-size:13px;letter-spacing:.06em;text-transform:uppercase;line-height:1.2;
 }
 .rail .mark small{display:block;font-weight:400;font-variation-settings:"wdth" 100;letter-spacing:.02em;text-transform:none;color:var(--muted);margin-top:4px}
-.rail nav{display:flex;flex-direction:column;gap:2px;font-family:var(--mono);font-size:12px}
+.rail nav{display:flex;flex-direction:column;gap:1px;font-family:var(--mono);font-size:12px}
 .rail nav a{
   display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:baseline;
-  padding:5px 6px;text-decoration:none;color:var(--muted);border-radius:2px;
+  padding:4px 6px;text-decoration:none;color:var(--muted);border-radius:2px;
 }
 .rail nav a span:first-child{font-variant-numeric:tabular-nums}
 .rail nav a:hover{color:var(--ink)}
@@ -140,7 +140,7 @@ section.slide:last-of-type{border-bottom:0}
   display:flex;gap:14px;align-items:baseline;margin:0 0 18px;
 }
 .eyebrow b{font-weight:500;color:var(--ember);font-variant-numeric:tabular-nums}
-h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1,h2,h3,h4{font-family:var(--display);text-wrap:balance;margin:0}
 h1{
   font-variation-settings:"wdth" 118;font-weight:700;
   font-size:clamp(40px,6vw,76px);line-height:.98;letter-spacing:-.015em;
@@ -148,13 +148,20 @@ h1{
 }
 h2{font-variation-settings:"wdth" 112;font-weight:700;font-size:clamp(28px,3.4vw,40px);line-height:1.08;letter-spacing:-.01em;max-width:22ch}
 h3{font-variation-settings:"wdth" 108;font-weight:600;font-size:18px;line-height:1.25;margin-bottom:8px}
+h4{font-variation-settings:"wdth" 105;font-weight:600;font-size:14px;line-height:1.3;margin-bottom:6px}
 p{max-width:66ch;margin:0}
-.lede{font-size:21px;line-height:1.45;max-width:38ch;margin-top:24px}
+.lede{font-size:21px;line-height:1.45;max-width:40ch;margin-top:24px}
 .stack{display:flex;flex-direction:column;gap:18px;margin-top:26px}
 .stack p{max-width:66ch}
-.wide{max-width:none}
+.intro{font-size:18.5px;line-height:1.5;max-width:62ch;margin-top:20px}
 em{font-style:italic}
 strong{font-weight:600}
+.detail{
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  margin:14px 0 6px;
+}
+.words{font-size:15px;color:var(--muted);margin-top:8px;max-width:60ch}
+.words b{color:var(--ink);font-weight:600}
 
 .stamp{
   display:inline-flex;gap:10px;align-items:center;
@@ -216,7 +223,9 @@ table{border-collapse:collapse;width:100%;font-size:15px}
 th,td{text-align:left;padding:8px 12px 8px 0;border-bottom:1px solid var(--rule);vertical-align:top}
 th{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
 td.num,th.num{text-align:right;font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums;padding-right:0;padding-left:12px}
-td code,p code,li code,dd code{font-family:var(--mono);font-size:.88em;background:var(--surface);padding:1px 5px;border:1px solid var(--rule);border-radius:2px}
+td code,p code,li code,dd code,figcaption code{font-family:var(--mono);font-size:.88em;background:var(--surface);padding:1px 5px;border:1px solid var(--rule);border-radius:2px}
+table.cmp td{font-size:15px;line-height:1.45}
+table.cmp td:first-child{font-family:var(--mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 
 .arch{width:100%;max-width:100%;height:auto;display:block;margin-top:30px}
 .arch text{font-family:var(--mono);font-size:12.5px;fill:var(--ink)}
@@ -226,11 +235,39 @@ td code,p code,li code,dd code{font-family:var(--mono);font-size:.88em;backgroun
 .arch .edge{stroke:var(--rule-strong);stroke-width:1.2;fill:none}
 .arch .edge-strong{stroke:var(--ink);stroke-width:1.4;fill:none}
 
+.flow{list-style:none;padding:0;margin:30px 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 20px}
+.flow li{position:relative;border-top:2px solid var(--ink);padding-top:12px}
+.flow li::after{
+  content:"";position:absolute;top:-2px;right:-14px;width:0;height:0;
+  border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid var(--ink);
+  transform:translateY(-4px);
+}
+.flow li:nth-child(4n)::after, .flow li:last-child::after{display:none}
+.flow .n{font-family:var(--mono);font-size:12px;color:var(--ember);letter-spacing:.08em}
+.flow h3{margin-top:6px;font-size:17px}
+.flow p{font-size:15px;margin-top:6px}
+.flow .code{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:8px;word-break:break-word}
+
 .steps{list-style:none;padding:0;margin:30px 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
 .steps li{border-top:2px solid var(--ink);padding-top:12px}
 .steps .n{font-family:var(--mono);font-size:12px;color:var(--ember);letter-spacing:.08em}
 .steps h3{margin-top:6px}
 .steps p{font-size:15.5px;margin-top:6px}
+
+.algos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px 28px;margin-top:30px}
+.algo svg{width:100%;height:auto;display:block;margin-bottom:14px}
+.algo svg text{font-family:var(--mono);font-size:11px;fill:var(--ink)}
+.algo svg .lbl{fill:var(--muted);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.algo svg .box{fill:var(--surface);stroke:var(--rule-strong);stroke-width:1}
+.algo svg .actor{fill:var(--surface);stroke:var(--learned);stroke-width:1.5}
+.algo svg .critic{fill:var(--surface);stroke:var(--scripted);stroke-width:1.5;stroke-dasharray:4 3}
+.algo svg .edge{stroke:var(--rule-strong);stroke-width:1.1;fill:none}
+.algo svg .edge-c{stroke:var(--scripted);stroke-width:1.1;fill:none;stroke-dasharray:3 3}
+.algo h3{font-size:19px}
+.algo .tag{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.algo p{font-size:15.5px}
+.algo .params{margin-top:12px;grid-template-columns:auto minmax(0,1fr);font-size:12.5px}
+.algo .params dd{overflow-wrap:anywhere}
 
 .compass{display:block;width:180px;max-width:100%;height:auto}
 .compass text{font-family:var(--mono);font-size:11px;fill:var(--ink)}
@@ -278,6 +315,11 @@ td code,p code,li code,dd code{font-family:var(--mono);font-size:.88em;backgroun
 .limits li{margin-bottom:6px}
 .limits .prop{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-left:8px}
 
+.gloss{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 40px;margin:16px 0 0;font-size:15.5px}
+.gloss div{display:grid;grid-template-columns:150px 1fr;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--rule)}
+.gloss dt{font-family:var(--display);font-variation-settings:"wdth" 105;font-weight:600;font-size:14px;margin:0;padding-top:2px}
+.gloss dd{margin:0}
+
 .run{margin-top:26px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 32px}
 .run pre{
   margin:0;font-family:var(--mono);font-size:13px;line-height:1.65;
@@ -305,14 +347,18 @@ footer.colophon{
   .rail nav a[aria-current="true"]{box-shadow:inset 0 -2px 0 var(--ember)}
   .rail .hint{display:none}
   section.slide{padding-block:48px 40px;scroll-margin-top:64px}
-  .grid2,.grid3,.rules,.limits,.run{grid-template-columns:1fr}
-  .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2,.grid3,.rules,.limits,.run,.algos,.gloss{grid-template-columns:1fr}
+  .steps,.flow{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .flow li:nth-child(4n)::after{display:block}
+  .flow li:nth-child(2n)::after, .flow li:last-child::after{display:none}
 }
 @media (max-width: 560px){
   body{font-size:16px}
-  .steps{grid-template-columns:1fr}
+  .steps,.flow{grid-template-columns:1fr}
+  .flow li::after{display:none}
   .lede{font-size:19px}
   .obs li{grid-template-columns:64px 1fr}
+  .gloss div{grid-template-columns:120px 1fr}
 }
 </style>
 </head>
@@ -321,18 +367,20 @@ footer.colophon{
 
 <div class="frame">
   <aside class="rail">
-    <div class="mark">Bushfire UAV<br>MARL Lab<small>Cooperative wildfire detection and suppression</small></div>
+    <div class="mark">Bushfire UAV<br>MARL Lab<small>Drones that learn to find and put out fires</small></div>
     <nav aria-label="Sections" id="nav">
       <a href="#s1"><span>01</span><span>The question</span></a>
-      <a href="#s2"><span>02</span><span>What it does</span></a>
-      <a href="#s3"><span>03</span><span>One environment</span></a>
-      <a href="#s4"><span>04</span><span>Fire model</span></a>
-      <a href="#s5"><span>05</span><span>Aircraft, sensing</span></a>
-      <a href="#s6"><span>06</span><span>Agent interface</span></a>
-      <a href="#s7"><span>07</span><span>Training</span></a>
-      <a href="#s8"><span>08</span><span>Measured results</span></a>
-      <a href="#s9"><span>09</span><span>Rules of evidence</span></a>
-      <a href="#s10"><span>10</span><span>Limits and next</span></a>
+      <a href="#s2"><span>02</span><span>What the tool does</span></a>
+      <a href="#s3"><span>03</span><span>How a study runs</span></a>
+      <a href="#s4"><span>04</span><span>One environment</span></a>
+      <a href="#s5"><span>05</span><span>How fire spreads</span></a>
+      <a href="#s6"><span>06</span><span>Drones and sensing</span></a>
+      <a href="#s7"><span>07</span><span>What a drone knows</span></a>
+      <a href="#s8"><span>08</span><span>Learning methods</span></a>
+      <a href="#s9"><span>09</span><span>Training recipe</span></a>
+      <a href="#s10"><span>10</span><span>Measured results</span></a>
+      <a href="#s11"><span>11</span><span>Rules of evidence</span></a>
+      <a href="#s12"><span>12</span><span>Limits and glossary</span></a>
     </nav>
     <div class="hint"><kbd>J</kbd> <kbd>K</kbd> or arrow keys<br>move between sections</div>
   </aside>
@@ -341,80 +389,97 @@ footer.colophon{
 
   <section class="slide" id="s1">
     <p class="eyebrow"><b>01</b> The question</p>
-    <h1>Can a small UAV team learn to find and put out fires it cannot fully see?</h1>
-    <p class="lede">A seeded simulator for multi-agent reinforcement learning over a real study box in Victoria, with metrics computed from state and nothing invented.</p>
-    <div class="stamp">Research simulation. Not an operational fire-behaviour or UAV command system.</div>
+    <h1>Can a small team of drones learn to find and put out fires it cannot fully see?</h1>
+    <p class="lede">This project is a computer simulation in which autonomous drones learn, by trial and error, to search a patch of Victorian bushland, spot fires early and put them out. Every number on this page was measured from the simulation. None were typed in by hand.</p>
+    <div class="stamp">Research simulation. Not an operational fire-behaviour or drone control system.</div>
 
     <figure class="figure">
       <div class="sim" id="sim">
-        <canvas id="cv" width="720" height="432" aria-label="Animated cellular-automaton wildfire with four UAVs seeking and extinguishing fire fronts"></canvas>
+        <canvas id="cv" width="720" height="432" aria-label="Animated wildfire on a grid with four drones seeking and extinguishing fire fronts"></canvas>
         <div class="hud" id="hud"><span>t 0 s</span> <span>burning 0</span> <span>out 0</span></div>
       </div>
       <div class="legend">
         <span><i style="background:var(--cell-unburned);border:1px solid var(--rule-strong)"></i>unburned</span>
         <span><i style="background:var(--cell-burning)"></i>burning</span>
-        <span><i style="background:var(--cell-burned)"></i>burned out</span>
-        <span><i style="background:var(--cell-out)"></i>extinguished by UAV</span>
-        <span><i style="background:var(--uav);border-radius:50%"></i>UAV, greedy nearest-fire</span>
+        <span><i style="background:var(--cell-burned)"></i>burned out on its own</span>
+        <span><i style="background:var(--cell-out)"></i>put out by a drone</span>
+        <span><i style="background:var(--uav);border-radius:50%"></i>drone, with its 800 m sensing ring</span>
       </div>
-      <figcaption>Live re-implementation of the repository's fire rule in the browser: 8-neighbour cellular automaton, elliptical wind-driven spread, <b>wind 18 km/h from NW</b>, 80 m cells, stochastic ignition <b>p = 1 − exp(−R(φ)/d · dt)</b>. UAVs follow the greedy expert used to seed training. Illustrative only; the measured results in section 08 come from the Python environment.</figcaption>
+      <figcaption><b>What you are watching.</b> The same fire-spread rule the project uses, running in your browser. Each square is 80 m of land. Orange squares are burning; the wind blows from the north-west, so fires stretch toward the south-east. The triangles are drones. Each flies to the nearest fire it knows about and, once within 120 m, turns that fire's squares green. This is an illustration. The measured results in section 10 come from the full Python simulation.</figcaption>
     </figure>
   </section>
 
   <section class="slide" id="s2">
-    <p class="eyebrow"><b>02</b> What the laboratory does</p>
-    <h2>A supervisor-facing workbench for seeded, comparable episodes</h2>
+    <p class="eyebrow"><b>02</b> What the tool does</p>
+    <h2>A laboratory bench for repeatable drone experiments</h2>
     <div class="stack">
-      <p>The user selects a real WGS84 study envelope in Victoria, places ignition points, sets wind and fuel, sizes the fleet and its sensor, then runs the same scenario under a scripted expert or a loaded MARL checkpoint. Every dashboard number is derived from simulation state. Undefined values return <code>null</code> and display as <strong>N/A</strong>.</p>
-      <p>The same scenario JSON and seed reproduce the same trajectory. Multi-seed comparison runs headless and reports mean, sample SD and a Student-t 95% interval. The API marks <code>significance_tested: false</code>; no hypothesis test is performed, and the report does not claim one.</p>
+      <p class="intro">A researcher picks a real area of Victoria on a map, clicks where fires start, sets the wind, decides how many drones fly and how far their cameras can see, then presses run. The simulation plays out second by second. Every statistic on the dashboard is calculated from what actually happened in that run.</p>
+      <p>The same setup, run twice, gives exactly the same answer. That is deliberate. Each run is stamped with a <em>seed</em>, a starting number for the random parts of the simulation, so a result can be reproduced by anyone with the same scenario file and seed. When a value cannot be computed it is reported as <strong>N/A</strong> rather than guessed.</p>
+      <p>To compare two drone strategies, the tool runs both on the same set of random scenes and reports the average, the spread, and a 95% confidence interval. It does not run a hypothesis test, and it says so in the output, so nobody can claim one strategy "significantly" beats another from this table alone.</p>
     </div>
     <div class="grid3">
       <div class="block">
         <h3>Study areas</h3>
-        <p>Kinglake / Central Highlands, Grampians, East Gippsland, Otway Ranges, Alpine foothills. Each is a searchable envelope, not a legal boundary. Kinglake is about 5.5 by 8 km.</p>
+        <p>Five named regions of Victoria: Kinglake and the Central Highlands, the Grampians, East Gippsland, the Otway Ranges and the Alpine foothills. Each is a rectangle around a real place, roughly 5.5 by 8 km for Kinglake, used as a search box rather than a legal boundary.</p>
       </div>
       <div class="block">
-        <h3>Policies</h3>
-        <p>Three trained actors: independent DQN, MAPPO, MADDPG. A greedy nearest-known-fire expert stays available for training rollouts. A missing checkpoint is labelled <em>untrained</em> and acts randomly.</p>
+        <h3>Drone strategies</h3>
+        <p>A <em>policy</em> is the decision rule that tells each drone what to do next. Three were learned by neural networks (DQN, MAPPO, MADDPG). A hand-written "greedy" pilot that flies straight to the nearest known fire is kept for training and comparison. If a learned policy file is missing, the tool labels it <em>untrained</em> and never reports it as a learned result.</p>
       </div>
       <div class="block">
         <h3>Views and exports</h3>
-        <p>MapLibre 2D by default; Cesium 3D lazy-loaded from the same <code>SimState</code>. Per-step WebSocket ticks, an engine event log, replay, JSON and CSV export.</p>
+        <p>A 2D map by default, with an optional 3D globe drawn from the same data. Every step is streamed live to the browser, logged, replayable, and exportable as JSON or CSV for analysis elsewhere.</p>
       </div>
     </div>
   </section>
 
   <section class="slide" id="s3">
-    <p class="eyebrow"><b>03</b> One environment, two paths</p>
-    <h2>Training and deployment call the same <span style="font-family:var(--mono);font-weight:500;font-size:.8em">WildfireEnv.step()</span></h2>
-    <p class="wide" style="margin-top:18px;max-width:66ch">Visualisation is never required to train. The headless trainer and the FastAPI service run the identical NumPy environment, so a checkpoint evaluated offline behaves the same on the map.</p>
+    <p class="eyebrow"><b>03</b> How a study runs, start to finish</p>
+    <h2>From a map click to a comparison table, in eight steps</h2>
+    <p class="intro">This is the full methodology. Each step feeds the next, and the same code runs whether the drones are learning or being tested.</p>
+    <ol class="flow">
+      <li><span class="n">STEP 1</span><h3>Describe the scenario</h3><p>Choose the area, where fires ignite, wind speed and direction, how many drones fly, their speed, camera range and radio range.</p><div class="code">scenario JSON + seed</div></li>
+      <li><span class="n">STEP 2</span><h3>Build the world</h3><p>The land becomes a grid of 80 m squares for fire and 120 m squares for tracking what has been searched. Distances are measured on a local flat map in metres.</p><div class="code">WildfireEnv.reset(seed)</div></li>
+      <li><span class="n">STEP 3</span><h3>Record an expert</h3><p>A simple hand-written pilot flies to the nearest fire it knows about and hovers over it. Its flights are recorded as examples of good behaviour.</p><div class="code">16 episodes, 4 drones, greedy pilot</div></li>
+      <li><span class="n">STEP 4</span><h3>Teach by imitation</h3><p>A neural network learns to copy the expert's choices. Training repeats until, on test scenes it has never seen, it puts out fires on its own.</p><div class="code">behavioural cloning</div></li>
+      <li><span class="n">STEP 5</span><h3>Improve by trial and error</h3><p>Three reinforcement learning methods each refine the copied network using the team score, with a leash back to the expert so they never forget how to hover and extinguish.</p><div class="code">DQN, MAPPO, MADDPG</div></li>
+      <li><span class="n">STEP 6</span><h3>Keep the best version</h3><p>After each round of training the network is tested on three held-out scenes. The version that put out the most fires is the one saved.</p><div class="code">holdout seeds 9000 to 9002</div></li>
+      <li><span class="n">STEP 7</span><h3>Evaluate every strategy fairly</h3><p>All strategies fly the same random scenes with the same seeds, four minutes each, with no graphics running. Only the strategy name changes between runs.</p><div class="code">scripts/eval_policies.py</div></li>
+      <li><span class="n">STEP 8</span><h3>Report without embellishment</h3><p>Fires found, fires put out, area searched and team score are counted from the final state and reported per seed, with averages and intervals.</p><div class="code">mean ± SD, 95% CI, no significance test</div></li>
+    </ol>
+  </section>
 
-    <svg class="arch" viewBox="0 0 900 330" role="img" aria-label="Architecture: scenario and seed enter WildfireEnv.step, which feeds both the headless trainer producing checkpoints and the FastAPI deployment serving MapLibre and Cesium views">
+  <section class="slide" id="s4">
+    <p class="eyebrow"><b>04</b> One environment, two uses</p>
+    <h2>The drones learn in the same world they are later tested in</h2>
+    <p class="intro">There is no separate "demo" version. The simulation that trains the drones is the exact code that runs behind the map. A drone strategy evaluated offline behaves identically on screen.</p>
+
+    <svg class="arch" viewBox="0 0 900 330" role="img" aria-label="Architecture: scenario and seed enter the simulation core, which feeds the headless trainer producing saved networks, the experiment runner, and the web service serving 2D and 3D map views">
       <text x="450" y="28" text-anchor="middle" class="lbl">scenario json + seed</text>
       <path class="edge-strong" d="M450 36 V70"/>
       <rect class="core" x="330" y="70" width="240" height="56" rx="2"/>
-      <text x="450" y="94" text-anchor="middle">WildfireEnv.reset / step</text>
-      <text x="450" y="112" text-anchor="middle" class="lbl">python · numpy · dt = 1 s</text>
+      <text x="450" y="94" text-anchor="middle">simulation core</text>
+      <text x="450" y="112" text-anchor="middle" class="lbl">WildfireEnv · python · 1 s steps</text>
 
       <path class="edge-strong" d="M450 126 V150 H230 V184"/>
       <path class="edge-strong" d="M450 150 H670 V184"/>
       <path class="edge-strong" d="M450 126 V184" opacity=".35"/>
 
       <rect class="box" x="120" y="184" width="220" height="56" rx="2"/>
-      <text x="230" y="208" text-anchor="middle">headless trainer</text>
+      <text x="230" y="208" text-anchor="middle">training, no graphics</text>
       <text x="230" y="226" text-anchor="middle" class="lbl">train_mappo_maddpg.py</text>
 
       <rect class="box" x="340" y="184" width="220" height="56" rx="2"/>
-      <text x="450" y="208" text-anchor="middle">experiments runner</text>
-      <text x="450" y="226" text-anchor="middle" class="lbl">multi-seed · mean ± sd · t-ci</text>
+      <text x="450" y="208" text-anchor="middle">multi-seed experiments</text>
+      <text x="450" y="226" text-anchor="middle" class="lbl">mean · SD · 95% interval</text>
 
       <rect class="box" x="560" y="184" width="220" height="56" rx="2"/>
-      <text x="670" y="208" text-anchor="middle">FastAPI + WebSocket</text>
-      <text x="670" y="226" text-anchor="middle" class="lbl">/api · /ws/simulations/{id}</text>
+      <text x="670" y="208" text-anchor="middle">web service</text>
+      <text x="670" y="226" text-anchor="middle" class="lbl">FastAPI · live WebSocket</text>
 
       <path class="edge" d="M230 240 V276"/>
       <rect class="box" x="140" y="276" width="180" height="40" rx="2"/>
-      <text x="230" y="300" text-anchor="middle">checkpoint .pt</text>
+      <text x="230" y="300" text-anchor="middle">saved network (.pt)</text>
 
       <path class="edge" d="M320 296 H340 V214" opacity=".6"/>
       <path class="edge" d="M320 296 H560 V240" opacity=".6"/>
@@ -422,117 +487,112 @@ footer.colophon{
       <path class="edge" d="M670 240 V262 H610 V276"/>
       <path class="edge" d="M670 262 H730 V276"/>
       <rect class="box" x="540" y="276" width="140" height="40" rx="2"/>
-      <text x="610" y="300" text-anchor="middle">MapLibre 2D</text>
+      <text x="610" y="300" text-anchor="middle">2D map</text>
       <rect class="box" x="690" y="276" width="140" height="40" rx="2"/>
-      <text x="760" y="300" text-anchor="middle">Cesium 3D</text>
+      <text x="760" y="300" text-anchor="middle">3D globe</text>
     </svg>
 
     <div class="grid2">
       <div class="block">
-        <h3>Coordinate discipline</h3>
-        <p>WGS84 for storage and display. All distances, headings and grids use a local azimuthal-equidistant metre frame with origin at the AOI centroid. Nothing is measured in raw latitude and longitude.</p>
+        <h3>Measuring distance honestly</h3>
+        <p>Latitude and longitude are kept for storing and displaying positions, but every distance, heading and grid is computed on a local flat map in metres centred on the study area. Measuring in raw degrees would distort distances, so the code never does.</p>
       </div>
       <div class="block">
-        <h3>Clock discipline</h3>
-        <p>Fixed timestep <code>dt</code>, default 1 s. The UI speed multiplier changes wall-clock sleep only. The displayed clock is <code>environment.time_s</code>.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="slide" id="s4">
-    <p class="eyebrow"><b>04</b> Fire model</p>
-    <h2>A simplified elliptical cellular automaton, labelled as such</h2>
-    <p style="margin-top:18px">Cells are <code>UNBURNED</code>, <code>BURNING</code>, <code>BURNED</code>, <code>UNBURNABLE</code> or <code>EXTINGUISHED</code>. Only UAV suppression produces <code>EXTINGUISHED</code>; natural burnout is <code>BURNED</code>. Detection never changes a cell.</p>
-
-    <div class="grid2">
-      <div class="block">
-        <h3>Head rate of spread</h3>
-        <div class="eq">R<sub>head</sub> = R<sub>0</sub> · fuel · (1 + a · U<sup>b</sup>)</div>
-        <dl class="params">
-          <dt>R<sub>0</sub></dt><dd>0.35 m/s default, 0.22 in evaluation</dd>
-          <dt>a, b</dt><dd>0.18, 1.15</dd>
-          <dt>fuel</dt><dd>uniform 0.85 unless a vegetation layer is supplied</dd>
-          <dt>U</dt><dd>wind speed, m/s, constant for the episode</dd>
-        </dl>
-      </div>
-      <div class="block">
-        <h3>Elliptical scaling toward a neighbour</h3>
-        <div class="eq">R(φ) = R<sub>head</sub> · (1 − e) / (1 − e · cos φ)
-e    = clip((LB − 1)/(LB + 1), 0, 0.95)
-LB   = 1 + c · U</div>
-        <dl class="params">
-          <dt>φ</dt><dd>heading to neighbour relative to downwind</dd>
-          <dt>c</dt><dd>0.25 (length-to-breadth vs wind)</dd>
-          <dt>wind</dt><dd>meteorological FROM, 0° = N, clockwise</dd>
-        </dl>
-      </div>
-      <div class="block">
-        <h3>Ignition</h3>
-        <div class="eq">stochastic:     p = 1 − exp(−R(φ)/d · dt)
-deterministic:  Σ R(φ)/d · dt ≥ 1  (Huygens-style arrival)</div>
-        <p style="margin-top:10px">Stochastic mode draws from <code>numpy.random.Generator(seed)</code>. Deterministic mode accumulates exposure per unburned cell.</p>
-      </div>
-      <div class="block">
-        <h3>Burnout and slope</h3>
-        <div class="eq">T<sub>burn</sub> = T<sub>0</sub> / max(fuel, 0.15),  T<sub>0</sub> = 180 s</div>
-        <p style="margin-top:10px">Slope multiplies rate of spread only when a DEM is loaded and <code>slope_is_real</code> is set. Bundled runs use slope = 0.</p>
+        <h3>Keeping time honestly</h3>
+        <p>The simulation advances in fixed one-second steps. The on-screen speed control only changes how long the computer waits between steps; it never changes the physics.</p>
       </div>
     </div>
   </section>
 
   <section class="slide" id="s5">
-    <p class="eyebrow"><b>05</b> Aircraft, sensing, suppression, comms</p>
-    <h2>Point-mass aircraft, Bernoulli sensing, overlap-only suppression</h2>
+    <p class="eyebrow"><b>05</b> How fire spreads in the model</p>
+    <h2>A grid of burning squares, stretched by the wind</h2>
+    <p class="intro">The land is a grid of 80 m squares. A burning square can set any of its eight neighbours alight. How likely that is each second depends on how fast fire would travel in that direction: fastest with the wind, slowest against it. That makes each fire an ellipse pointing downwind. A square burns for about three and a half minutes, then burns out on its own.</p>
+    <p style="margin-top:14px">This is a deliberately simplified model, labelled as such throughout the tool. It is not Phoenix, SPARK or any operational fire-behaviour system. It is good enough to give the drones a moving, wind-shaped target to chase.</p>
 
     <div class="grid2">
       <div class="block">
-        <h3>UAV dynamics</h3>
-        <p>Kinematic point mass in the local ENU frame. Speed, climb rate and turn rate are clipped to configured maxima; position is clipped to the AOI. Wind does not advect the airframe, by documented simplification.</p>
-        <div class="eq">P = P<sub>hover</sub> + k · v²       battery<sub>J</sub> −= P · dt
-return to base when battery<sub>J</sub> / capacity ≤ threshold</div>
+        <h3>Speed at the head of the fire</h3>
+        <div class="eq">R<sub>head</sub> = R<sub>0</sub> · fuel · (1 + a · U<sup>b</sup>)</div>
+        <p class="words"><b>In words:</b> a base speed, scaled by how much fuel is on the ground, and boosted by wind speed U.</p>
         <dl class="params">
-          <dt>capacity</dt><dd>180 kJ default</dd>
-          <dt>cruise</dt><dd>16 m/s at 120 m in evaluation</dd>
+          <dt>R<sub>0</sub></dt><dd>0.35 m/s default, 0.22 in the evaluation runs</dd>
+          <dt>a, b</dt><dd>0.18, 1.15</dd>
+          <dt>fuel</dt><dd>a flat 0.85 everywhere unless a vegetation map is supplied</dd>
         </dl>
       </div>
       <div class="block">
-        <h3>Sensor</h3>
-        <p>A true detection of a source needs a <code>BURNING</code> cell inside range and a successful Bernoulli trial. With no fire in range, a false report is emitted with probability <code>p_fp</code>. No line-of-sight, smoke or weather attenuation.</p>
-        <div class="eq">p<sub>true</sub> = p<sub>det</sub> · (1 − p<sub>fn</sub>) · clip(0.25 + 0.75 · I, 0, 1)</div>
-        <dl class="params">
-          <dt>range</dt><dd>800 m in evaluation</dd>
-          <dt>I</dt><dd>cell intensity, 0 to 1</dd>
-        </dl>
+        <h3>Speed in other directions</h3>
+        <div class="eq">R(φ) = R<sub>head</sub> · (1 − e) / (1 − e · cos φ)
+e    = clip((LB − 1)/(LB + 1), 0, 0.95)
+LB   = 1 + c · U</div>
+        <p class="words"><b>In words:</b> φ is the angle between "downwind" and the neighbour. Straight downwind gets the full speed; sideways and upwind get less. Stronger wind makes the ellipse longer and thinner.</p>
+        <dl class="params"><dt>c</dt><dd>0.25</dd></dl>
       </div>
       <div class="block">
-        <h3>Suppression</h3>
-        <p>Detecting a fire does not put it out. A UAV extinguishes a source only when its planimetric distance to the fire point is at most <code>suppression_range_m</code>, default <strong>120 m</strong>. Then every remaining <code>BURNING</code> cell of that source becomes <code>EXTINGUISHED</code> and the source stops spreading.</p>
+        <h3>Whether a neighbour catches</h3>
+        <div class="eq">p = 1 − exp(−R(φ) / d · dt)</div>
+        <p class="words"><b>In words:</b> each second, a neighbour at distance d catches fire with a probability that rises with the spread speed toward it. The random draw uses the run's seed, so it is repeatable. A deterministic mode instead accumulates exposure and ignites the square when it reaches 1.</p>
       </div>
       <div class="block">
-        <h3>Communication, coverage, separation</h3>
-        <p>An undirected link exists when distance is within both ranges and both batteries are positive; drops are i.i.d. Coverage is explored eligible cells over eligible cells. Near miss below the configured separation with |Δz| under 15 m; collision below 8 m horizontal.</p>
+        <h3>Burning out, and slope</h3>
+        <div class="eq">T<sub>burn</sub> = T<sub>0</sub> / max(fuel, 0.15),  T<sub>0</sub> = 180 s</div>
+        <p class="words"><b>In words:</b> more fuel burns longer. Hills would speed fire uphill, but slope is only applied when a real elevation map is loaded; the bundled runs treat the land as flat.</p>
       </div>
     </div>
   </section>
 
   <section class="slide" id="s6">
-    <p class="eyebrow"><b>06</b> What an agent sees and does</p>
-    <h2>Partial observability at execution, a team reward in training</h2>
-    <p style="margin-top:18px">Each UAV acts from a 57-element observation and picks one of nine discrete actions. Known fires at execution are the agent's own true detections plus successfully delivered messages, never the global list, unless <code>allow_global_state</code> is switched on for training.</p>
+    <p class="eyebrow"><b>06</b> Drones, sensing, putting fires out, radio</p>
+    <h2>Simple aircraft, honest cameras, and a strict rule for extinguishing</h2>
+    <p class="intro">A drone is modelled as a moving point with a heading, a speed and a battery. Seeing a fire and putting it out are two different things, and the tool never confuses them: a detection is a report, an extinguish requires the drone to be physically over the fire.</p>
+
+    <div class="grid2">
+      <div class="block">
+        <h3>Flying</h3>
+        <p>Each second a drone turns toward its chosen heading and moves at cruise speed, limited by maximum turn rate, climb rate and speed. It cannot leave the study area. Wind does not push it around; that simplification is documented.</p>
+        <div class="eq">power = P<sub>hover</sub> + k · speed²
+battery −= power · dt
+return to base when battery / capacity ≤ threshold</div>
+        <dl class="params">
+          <dt>battery</dt><dd>180 kJ default</dd>
+          <dt>cruise</dt><dd>16 m/s at 120 m altitude in evaluation</dd>
+        </dl>
+      </div>
+      <div class="block">
+        <h3>Seeing</h3>
+        <p>If a burning square is within 800 m, the drone notices it with a probability that rises with how intensely it is burning. Bright fires are easier to spot. There is no terrain, smoke or camera model, so nothing ever blocks the view. With no fire in range, a false alarm can be raised with a small set probability (zero in the evaluation runs).</p>
+        <div class="eq">p<sub>see</sub> = p<sub>det</sub> · (1 − p<sub>miss</sub>) · clip(0.25 + 0.75 · intensity, 0, 1)</div>
+      </div>
+      <div class="block">
+        <h3>Putting a fire out</h3>
+        <p>A drone extinguishes a fire only when it is within <strong>120 m</strong> of the fire's centre, measured on the map. At that moment every burning square belonging to that fire becomes "extinguished", the fire turns green on the map, and it stops spreading. Hovering anywhere else does nothing. This is an abstract rule, not a model of water or retardant drops.</p>
+      </div>
+      <div class="block">
+        <h3>Talking to each other, and staying apart</h3>
+        <p>Two drones can exchange messages when they are within radio range of each other (4.5 km in evaluation) and both have battery. A message can be dropped at random with a set probability. A "near miss" is logged when two drones come within the configured separation at similar altitude; a collision when they come within 8 m.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s7">
+    <p class="eyebrow"><b>07</b> What a drone knows and can do</p>
+    <h2>Each drone sees only its own patch, and shares one team score</h2>
+    <p class="intro">Every second, each drone receives a list of 57 numbers describing what it knows, and chooses one of nine moves. It does not get a god's-eye view. It only knows about fires it has seen itself or been told about by radio. During training, a switch can grant the full fire list to speed up learning; it is off by default at flight time.</p>
 
     <div class="grid2" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)">
       <div class="block">
-        <h3>Observation, length 57, float32</h3>
+        <h3>The 57 numbers a drone sees</h3>
         <ul class="obs">
-          <li><span class="idx">0 to 10</span><span>Own pose, battery, wind, normalised time. Heading as sin and cos; positions over AOI extent; wind over 40 m/s.</span></li>
-          <li><span class="idx">11 to 19</span><span>Up to three known active fires as (dx, dy, intensity). Extinguished and burned-out sources are dropped so the agent seeks what remains.</span></li>
-          <li><span class="idx">20 to 31</span><span>Up to three UAVs inside communication range.</span></li>
-          <li><span class="idx">32 to 56</span><span>5 × 5 local coverage patch.</span></li>
+          <li><span class="idx">0 to 10</span><span>Its own position, heading, battery level, the wind, and how far through the mission it is.</span></li>
+          <li><span class="idx">11 to 19</span><span>Up to three fires it currently knows about: direction, distance and intensity. Fires already put out or burned out are dropped, so the drone keeps looking for what remains.</span></li>
+          <li><span class="idx">20 to 31</span><span>Up to three teammates within radio range, and where they are.</span></li>
+          <li><span class="idx">32 to 56</span><span>A 5 by 5 patch showing which nearby squares have already been searched.</span></li>
         </ul>
       </div>
       <div class="block">
-        <h3>Action, discrete-9</h3>
-        <svg class="compass" viewBox="0 0 180 180" role="img" aria-label="Compass rose with eight heading actions and a central hover action">
+        <h3>The nine moves</h3>
+        <svg class="compass" viewBox="0 0 180 180" role="img" aria-label="Compass rose with eight heading moves and a central hover move">
           <g class="spoke">
             <line x1="90" y1="90" x2="90" y2="22"/><line x1="90" y1="90" x2="138" y2="42"/>
             <line x1="90" y1="90" x2="158" y2="90"/><line x1="90" y1="90" x2="138" y2="138"/>
@@ -550,135 +610,263 @@ return to base when battery<sub>J</sub> / capacity ≤ threshold</div>
           <text x="90" y="174" text-anchor="middle">S</text><text x="30" y="152" text-anchor="middle">SW</text>
           <text x="9" y="94" text-anchor="middle">W</text><text x="30" y="36" text-anchor="middle">NW</text>
         </svg>
-        <p style="margin-top:10px;font-size:15.5px">Mapped to a target heading at cruise speed, then constrained by <code>apply_action</code>. HOVER at a fire extinguishes only inside suppression range.</p>
+        <p style="margin-top:10px;font-size:15.5px">Fly in one of eight compass directions at cruise speed, or hover in place. Hovering only extinguishes a fire if the drone is already within 120 m of it.</p>
       </div>
     </div>
 
     <div class="block" style="margin-top:32px">
-      <h3>Reward, shared by all agents in the step</h3>
-      <div class="eq">R = α N<sub>detected</sub> + ζ N<sub>cells out</sub> + η N<sub>fires out</sub> + β Δcoverage − γ Δenergy − δ N<sub>collisions</sub> − ε Δoverlap</div>
-      <dl class="params" style="grid-template-columns:repeat(7,auto);justify-content:start;gap:4px 22px">
-        <dt>α</dt><dt>ζ</dt><dt>η</dt><dt>β</dt><dt>γ</dt><dt>δ</dt><dt>ε</dt>
-        <dd>8</dd><dd>0.35</dd><dd>16</dd><dd>0.4</dd><dd>0.04</dd><dd>8</dd><dd>0.3</dd>
-      </dl>
-      <p style="margin-top:12px">Suppression is weighted twice as much as detection. The reward is an optimisation signal for the team, not a classification accuracy, and it is reported as such.</p>
-    </div>
-  </section>
-
-  <section class="slide" id="s7">
-    <p class="eyebrow"><b>07</b> Training pipeline</p>
-    <h2>Clone the expert, then fine-tune without forgetting how to hover</h2>
-    <p style="margin-top:18px">An earlier short run learned to approach fires but not the final hover that completes suppression. The current trainer is built around that failure. Steps are ordered; each depends on the previous.</p>
-
-    <ol class="steps">
-      <li><span class="n">STEP 1</span><h3>Expert rollouts</h3><p>Greedy nearest-known-fire policy generates trajectories with fires visible. Lawnmower is not cloned; it does not teach suppression.</p></li>
-      <li><span class="n">STEP 2</span><h3>Behavioural cloning</h3><p>Near-fire HOVER is oversampled. Cloning repeats until the holdout extinguished count is measured at 1.5 to 2 or better. Adam, lr 8e-4, 12 epochs, batch 256.</p></li>
-      <li><span class="n">STEP 3</span><h3>MAPPO and MADDPG fine-tune</h3><p>Central critic, decentralised actor. A BC regulariser and decaying expert mixing keep the suppression behaviour. Actor lr 8e-5, critic 2e-4; MADDPG uses Gumbel-Softmax τ 0.8 and target τ 0.02.</p></li>
-      <li><span class="n">STEP 4</span><h3>Keep the best holdout</h3><p>The saved checkpoint is the one with the highest measured holdout extinguish count on seeds 9000 to 9002. Nothing is written that was not measured.</p></li>
-    </ol>
-
-    <div class="grid2" style="margin-top:36px">
-      <div class="block">
-        <h3>Actor network</h3>
-        <div class="eq">57 → 128 → 128 → 9     tanh · tanh · logits
-critic (MAPPO):  4 × 57 → 128 → 128 → 1
-Q (MADDPG):      4 × (57 + 9) → 128 → 128 → 1</div>
-      </div>
-      <div class="block">
-        <h3>Training scenario</h3>
-        <dl class="params">
-          <dt>UAVs</dt><dd>4</dd>
-          <dt>episode</dt><dd>220 s at dt = 1 s</dd>
-          <dt>episodes</dt><dd>16 expert · 36 MAPPO · 36 MADDPG · 24 DQN</dd>
-          <dt>compute</dt><dd>CPU, no visualisation</dd>
-        </dl>
-      </div>
+      <h3>The team score</h3>
+      <p>After every second the whole team receives one score. Good outcomes add to it, bad ones subtract. Because the score is shared, each drone is rewarded for helping the team, not just itself. Putting a fire out is worth twice as much as finding one, which is what pushes the drones to finish the job rather than just report it.</p>
+      <div class="eq">score = 8 · fires found + 0.35 · squares put out + 16 · fires put out + 0.4 · new ground searched
+        − 0.04 · energy used − 8 · collisions − 0.3 · overlap with teammates</div>
+      <p class="words">This score is a training signal. It is not an accuracy percentage and the tool never presents it as one.</p>
     </div>
   </section>
 
   <section class="slide" id="s8">
-    <p class="eyebrow"><b>08</b> Measured results</p>
-    <h2>Fires extinguished out of four, two seeds, Kinglake</h2>
-    <p style="margin-top:18px">Headless evaluation from <code>scripts/eval_policies.py</code>: six UAVs, four random ignitions, 240 s, wind 18 km/h from NW, sensor 800 m, suppression 120 m, seeds 101 and 202. Two seeds is a smoke test, not a study; the interactive compare panel defaults to three seeds so a laptop finishes during a demonstration, and a paper run should raise this to 30.</p>
+    <p class="eyebrow"><b>08</b> Learning methods</p>
+    <h2>Three ways for a team to learn from one shared score</h2>
+    <div class="stack">
+      <p class="intro">Reinforcement learning is learning by doing: a program tries a move, receives a score, and adjusts itself to score higher next time. Multi-agent reinforcement learning means several learners act at once, here four drones, and the score is shared. The hard part is that every drone's outcome depends on what the others do.</p>
+      <p>All three methods below start from the same imitation-trained network and use the same 57-number input and nine-move output. They differ in one thing: how much each drone looks at its teammates while it learns. The blue boxes run on every drone during flight. The dashed orange boxes exist only during training and are switched off afterwards.</p>
+    </div>
+
+    <div class="algos">
+      <div class="algo">
+        <svg viewBox="0 0 360 200" role="img" aria-label="Independent DQN: each drone has its own Q-network from its own view to nine move values, with no shared component">
+          <text x="10" y="16" class="lbl">drone 1</text>
+          <rect class="box" x="10" y="24" width="100" height="34" rx="2"/><text x="60" y="45" text-anchor="middle">own view (57)</text>
+          <path class="edge" d="M110 41 H130"/>
+          <rect class="actor" x="130" y="24" width="110" height="34" rx="2"/><text x="185" y="45" text-anchor="middle">Q-network</text>
+          <path class="edge" d="M240 41 H260"/>
+          <rect class="box" x="260" y="24" width="90" height="34" rx="2"/><text x="305" y="45" text-anchor="middle">9 move values</text>
+
+          <text x="10" y="86" class="lbl">drone 2</text>
+          <rect class="box" x="10" y="94" width="100" height="34" rx="2"/><text x="60" y="115" text-anchor="middle">own view (57)</text>
+          <path class="edge" d="M110 111 H130"/>
+          <rect class="actor" x="130" y="94" width="110" height="34" rx="2"/><text x="185" y="115" text-anchor="middle">Q-network</text>
+          <path class="edge" d="M240 111 H260"/>
+          <rect class="box" x="260" y="94" width="90" height="34" rx="2"/><text x="305" y="115" text-anchor="middle">9 move values</text>
+
+          <text x="10" y="156" class="lbl">drones 3, 4</text>
+          <text x="60" y="176" text-anchor="middle" class="lbl">same again</text>
+          <text x="185" y="176" text-anchor="middle" class="lbl">no shared judge</text>
+        </svg>
+        <div class="tag">Independent DQN</div>
+        <h3>Everyone learns alone</h3>
+        <p>Each drone learns a network that estimates how good each of the nine moves would be from its own view, then takes the best one. It treats its teammates as part of the scenery. Simple and fast, but from any one drone's point of view the others look like unpredictable weather, which makes learning noisy.</p>
+        <dl class="params">
+          <dt>network</dt><dd>57 → 128 → 128 → 9</dd>
+          <dt>explores</dt><dd>5% random moves</dd>
+          <dt>learning rate</dt><dd>1e-4</dd>
+          <dt>shares</dt><dd>nothing</dd>
+        </dl>
+      </div>
+
+      <div class="algo">
+        <svg viewBox="0 0 360 200" role="img" aria-label="MAPPO: each drone's actor maps its own view to move probabilities; a central critic sees all four views during training only">
+          <text x="10" y="16" class="lbl">each drone, in flight</text>
+          <rect class="box" x="10" y="24" width="100" height="34" rx="2"/><text x="60" y="45" text-anchor="middle">own view (57)</text>
+          <path class="edge" d="M110 41 H130"/>
+          <rect class="actor" x="130" y="24" width="110" height="34" rx="2"/><text x="185" y="45" text-anchor="middle">actor</text>
+          <path class="edge" d="M240 41 H260"/>
+          <rect class="box" x="260" y="24" width="90" height="34" rx="2"/><text x="305" y="45" text-anchor="middle">move odds (9)</text>
+
+          <text x="10" y="106" class="lbl">training only</text>
+          <rect class="box" x="10" y="114" width="100" height="34" rx="2"/><text x="60" y="135" text-anchor="middle">all 4 views</text>
+          <path class="edge-c" d="M110 131 H130"/>
+          <rect class="critic" x="130" y="114" width="110" height="34" rx="2"/><text x="185" y="135" text-anchor="middle">central critic</text>
+          <path class="edge-c" d="M240 131 H260"/>
+          <rect class="box" x="260" y="114" width="90" height="34" rx="2"/><text x="305" y="135" text-anchor="middle">team value</text>
+          <path class="edge-c" d="M185 114 V58"/>
+          <text x="185" y="176" text-anchor="middle" class="lbl">critic guides the actor, then is dropped</text>
+        </svg>
+        <div class="tag">MAPPO · multi-agent PPO</div>
+        <h3>A coach who sees everything</h3>
+        <p>Each drone has an <em>actor</em>, a network that turns its own view into a probability for each move. During training, a separate <em>critic</em> is shown all four drones' views at once and learns to judge how promising the team's situation is. That judgement tells each actor which of its recent moves helped. At flight time the critic is gone; drones act on their own view only. This is called centralised training with decentralised execution.</p>
+        <dl class="params">
+          <dt>actor</dt><dd>57 → 128 → 128 → 9</dd>
+          <dt>critic</dt><dd>4 × 57 → 128 → 128 → 1</dd>
+          <dt>update</dt><dd>PPO with clipped steps</dd>
+          <dt>learning rate</dt><dd>actor 8e-5 · critic 2e-4</dd>
+        </dl>
+      </div>
+
+      <div class="algo">
+        <svg viewBox="0 0 360 200" role="img" aria-label="MADDPG: each drone's actor picks a move; a central Q-network scores all four views together with all four chosen moves during training only">
+          <text x="10" y="16" class="lbl">each drone, in flight</text>
+          <rect class="box" x="10" y="24" width="100" height="34" rx="2"/><text x="60" y="45" text-anchor="middle">own view (57)</text>
+          <path class="edge" d="M110 41 H130"/>
+          <rect class="actor" x="130" y="24" width="110" height="34" rx="2"/><text x="185" y="45" text-anchor="middle">actor</text>
+          <path class="edge" d="M240 41 H260"/>
+          <rect class="box" x="260" y="24" width="90" height="34" rx="2"/><text x="305" y="45" text-anchor="middle">chosen move</text>
+
+          <text x="10" y="106" class="lbl">training only</text>
+          <rect class="box" x="10" y="114" width="100" height="34" rx="2"/><text x="60" y="129" text-anchor="middle">all 4 views</text><text x="60" y="142" text-anchor="middle">+ all 4 moves</text>
+          <path class="edge-c" d="M110 131 H130"/>
+          <rect class="critic" x="130" y="114" width="110" height="34" rx="2"/><text x="185" y="135" text-anchor="middle">central Q-net</text>
+          <path class="edge-c" d="M240 131 H260"/>
+          <rect class="box" x="260" y="114" width="90" height="34" rx="2"/><text x="305" y="135" text-anchor="middle">joint value</text>
+          <path class="edge-c" d="M305 114 V58"/>
+          <path class="edge-c" d="M185 114 V58"/>
+          <text x="185" y="176" text-anchor="middle" class="lbl">score flows back through the choice</text>
+        </svg>
+        <div class="tag">MADDPG · multi-agent DDPG</div>
+        <h3>A coach who also sees the choices</h3>
+        <p>Same actor per drone, but the central judge is a <em>Q-network</em> that scores the combination of everyone's views <em>and</em> everyone's chosen moves together. That lets it credit a good pairing of moves, not just a good situation. Because moves are a menu of nine rather than a smooth dial, a technique called Gumbel-Softmax lets the learning signal pass back through the choice. Slow-moving "target" copies of both networks keep training stable.</p>
+        <dl class="params">
+          <dt>actor</dt><dd>57 → 128 → 128 → 9</dd>
+          <dt>Q-network</dt><dd>4 × (57 + 9) → 128 → 128 → 1</dd>
+          <dt>target blend</dt><dd>τ = 0.02 per update</dd>
+          <dt>Gumbel temp.</dt><dd>0.8</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="tablewrap" style="margin-top:36px">
+      <table class="cmp">
+        <thead><tr><th></th><th>Independent DQN</th><th>MAPPO</th><th>MADDPG</th></tr></thead>
+        <tbody>
+          <tr><td>What each drone runs in flight</td><td>Its own Q-network</td><td>Its own actor</td><td>Its own actor</td></tr>
+          <tr><td>What the judge sees in training</td><td>Nothing shared</td><td>All four drones' views</td><td>All four views and all four chosen moves</td></tr>
+          <tr><td>Kind of learning</td><td>Value-based: score each move, pick the best</td><td>Policy-based: nudge move probabilities, on fresh experience</td><td>Actor-critic: judge the joint choice, replay past experience</td></tr>
+          <tr><td>Strength</td><td>Simplest; least to go wrong</td><td>Stable updates; the clipped step limits damage from a bad batch</td><td>Credits good combinations of moves across drones</td></tr>
+          <tr><td>Weakness</td><td>Teammates look like random noise</td><td>Needs many fresh episodes</td><td>More moving parts; sensitive to settings</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="slide" id="s9">
+    <p class="eyebrow"><b>09</b> Training recipe</p>
+    <h2>Copy the expert first, then improve without forgetting how to hover</h2>
+    <p class="intro">An earlier, shorter attempt learned to fly toward fires but never learned the final hover that actually puts them out. The current recipe was built around that failure. The four steps are in order; each depends on the one before.</p>
+
+    <ol class="steps">
+      <li><span class="n">STEP 1</span><h3>Record the expert</h3><p>The hand-written greedy pilot flies with fires visible and its choices are recorded. A back-and-forth "lawnmower" search pattern was tried and rejected as the teacher: it covers ground but never teaches extinguishing.</p></li>
+      <li><span class="n">STEP 2</span><h3>Copy it, with emphasis on hovering</h3><p>The network is trained to reproduce the expert's moves. Moments where the expert hovers over a fire are shown extra often, because they are rare but decisive. Copying repeats until the network puts out at least 1.5 to 2 fires on unseen test scenes.</p></li>
+      <li><span class="n">STEP 3</span><h3>Refine with reinforcement learning</h3><p>DQN, MAPPO and MADDPG each start from the copied network and improve it using the team score. A penalty for drifting away from the expert, and a slowly shrinking share of expert-chosen moves mixed in, keep the hover behaviour intact.</p></li>
+      <li><span class="n">STEP 4</span><h3>Save only what tested best</h3><p>After each round, the network is tested on three held-out scenes. The version that put out the most fires is saved. Nothing is written to disk that was not measured.</p></li>
+    </ol>
+
+    <div class="grid2" style="margin-top:36px">
+      <div class="block">
+        <h3>Training settings</h3>
+        <dl class="params">
+          <dt>drones</dt><dd>4 per episode</dd>
+          <dt>episode length</dt><dd>220 s at one step per second</dd>
+          <dt>episodes</dt><dd>16 expert · 36 MAPPO · 36 MADDPG · 24 DQN</dd>
+          <dt>imitation</dt><dd>Adam, lr 8e-4, 12 epochs, batch 256</dd>
+          <dt>hardware</dt><dd>a laptop CPU, no graphics</dd>
+        </dl>
+      </div>
+      <div class="block">
+        <h3>Why the leash to the expert matters</h3>
+        <p>Reinforcement learning can quietly abandon a rare, valuable behaviour if a simpler one scores almost as well in the short term. Here the rare behaviour is hovering at exactly the right spot. The penalty and expert mixing act as a leash: the learner may improve on the expert, but cannot wander far enough to forget it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s10">
+    <p class="eyebrow"><b>10</b> Measured results</p>
+    <h2>Fires put out, out of four, on two random scenes near Kinglake</h2>
+    <p class="intro">Every strategy flew the same two scenes: six drones, four fires igniting at random spots, four minutes, wind 18 km/h from the north-west, 800 m camera range, 120 m extinguish range. Two scenes is a smoke test to confirm the pipeline works, not a study; a paper-grade run would use around 30.</p>
+    <p class="words" style="margin-top:12px"><b>How to read the chart:</b> each row is one strategy. The two filled dots are the two scenes (seeds 101 and 202). Further right is better. Hollow circles show the earlier, weaker version of each learned strategy from before the training recipe was fixed.</p>
 
     <div class="chart" id="chart1">
       <div class="head">
-        <h3>Sources extinguished per episode</h3>
+        <h3>Fires put out per scene</h3>
         <div class="key">
-          <span><i style="background:var(--learned)"></i>learned actor</span>
-          <span><i style="background:var(--scripted)"></i>scripted expert</span>
-          <span><i style="background:var(--control)"></i>random control</span>
-          <span><i class="hollow"></i>earlier checkpoint set</span>
+          <span><i style="background:var(--learned)"></i>learned by a neural network</span>
+          <span><i style="background:var(--scripted)"></i>hand-written expert</span>
+          <span><i style="background:var(--control)"></i>random moves (control)</span>
+          <span><i class="hollow"></i>earlier version</span>
         </div>
       </div>
-      <svg id="svg1" viewBox="0 0 860 300" role="img" aria-label="Dot plot of fires extinguished out of four for each policy on seeds 101 and 202, final checkpoints filled and earlier checkpoints hollow"></svg>
+      <svg id="svg1" viewBox="0 0 860 300" role="img" aria-label="Dot plot of fires put out, out of four, for each strategy on seeds 101 and 202, current versions filled and earlier versions hollow"></svg>
     </div>
 
     <div class="chart" id="chart2">
       <div class="head">
-        <h3>Episode reward, final checkpoints</h3>
+        <h3>Team score per scene, current versions</h3>
       </div>
-      <svg id="svg2" viewBox="0 0 860 240" role="img" aria-label="Dot plot of episode reward for each policy on seeds 101 and 202"></svg>
+      <svg id="svg2" viewBox="0 0 860 240" role="img" aria-label="Dot plot of team score for each strategy on seeds 101 and 202"></svg>
     </div>
 
     <div class="tablewrap">
       <table>
         <thead><tr>
-          <th>Policy</th><th>Algorithm</th>
-          <th class="num">Ext. 101</th><th class="num">Ext. 202</th>
-          <th class="num">Cells out 101</th><th class="num">Cells out 202</th>
-          <th class="num">Coverage 101</th><th class="num">Coverage 202</th>
-          <th class="num">Reward 101</th><th class="num">Reward 202</th>
+          <th>Strategy</th><th>Method</th>
+          <th class="num">Put out, 101</th><th class="num">Put out, 202</th>
+          <th class="num">Squares out, 101</th><th class="num">Squares out, 202</th>
+          <th class="num">Area searched, 101</th><th class="num">Area searched, 202</th>
+          <th class="num">Score, 101</th><th class="num">Score, 202</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
 
     <div class="stack" style="margin-top:28px">
-      <p><strong>What changed between checkpoint sets.</strong> Before the current recipe, MAPPO extinguished 4 then 2 sources and posted a reward of −904 on seed 202, a collision-penalty signature. DQN managed 2 then 0. After adding HOVER oversampling, the BC regulariser and best-holdout selection, MAPPO reached 4 of 4 on both seeds and DQN 3 and 4. A later MADDPG-only re-evaluation (<code>eval_maddpg.json</code>) also recorded 4 of 4 on both seeds.</p>
-      <p><strong>Read with care.</strong> Every policy detected all four fires; detection is the easy half. Under <code>allow_global_state=True</code> the scripted baselines converge on the same fire-seeking trajectories as the greedy expert, so this table cannot separate them, and the learned actors are matching the expert they were cloned from rather than exceeding it. Whether they generalise where the expert does not is the open question for the next experiment.</p>
+      <p><strong>What the recipe changed.</strong> Before the current recipe, MAPPO put out 4 fires on one scene and 2 on the other, and on the second scene its score collapsed to −904, the signature of repeated collisions. DQN managed 2 and then 0. After adding hover emphasis, the expert leash and best-on-test selection, MAPPO put out all 4 fires on both scenes and DQN 3 and 4. A later re-test of MADDPG alone (<code>eval_maddpg.json</code>) also recorded 4 of 4 on both scenes.</p>
+      <p><strong>Read with care.</strong> Every strategy, including random, found some fires, and every non-random one found all four; finding is the easy half. The learned strategies are currently <em>matching</em> the hand-written expert they were taught by, not beating it. Whether they do better than the expert in situations the expert handles badly, such as when drones can only rely on their own sightings, is the next experiment, not a result of this one.</p>
     </div>
   </section>
 
-  <section class="slide" id="s9">
-    <p class="eyebrow"><b>09</b> Rules of evidence</p>
-    <h2>Conventions the codebase enforces so numbers can be trusted</h2>
+  <section class="slide" id="s11">
+    <p class="eyebrow"><b>11</b> Rules of evidence</p>
+    <h2>Conventions built into the code so the numbers can be trusted</h2>
     <ul class="rules">
-      <li><span><b>Metrics come from state.</b> Every dashboard value is computed in <code>metrics.py</code> from the live environment. Undefined returns <code>null</code>, shown as N/A.</span></li>
-      <li><span><b>Detection is not suppression.</b> A green pin is a detection report. Extinguished counts require a UAV inside suppression range of a burning cell.</span></li>
-      <li><span><b>Untrained is labelled.</b> A missing or incompatible checkpoint yields <code>UntrainedMARLPolicy</code> with <code>trained=False</code>. It is never reported as a MARL result.</span></li>
-      <li><span><b>Real and simulated layers are separate.</b> AOI envelopes and imagery tiles are labelled real. Fire, UAV and coverage layers are labelled simulated. Missing datasets are placeholders, not invented roads or terrain.</span></li>
-      <li><span><b>Reproducibility is tested.</b> Scenario JSON plus seed plus policy fixes the trajectory. 33 tests across 11 files cover fire, sensor, suppression, coverage, communication, collision, metrics and identity of repeated runs.</span></li>
-      <li><span><b>No unearned significance.</b> Multi-seed reports print mean ± SD with a t-interval and set <code>significance_tested: false</code>. Coordination-efficiency slogans without a formula are not implemented.</span></li>
+      <li><span><b>Numbers come from the simulation, never from a formula in the interface.</b> Every dashboard value is computed from the live state. Anything undefined is reported as N/A.</span></li>
+      <li><span><b>Finding is not extinguishing.</b> A detection is a report. A fire counts as put out only when a drone was within 120 m of it while it was burning. The two counts are always shown separately.</span></li>
+      <li><span><b>Untrained is labelled untrained.</b> If a saved network is missing or unreadable, the drones move randomly and the run is marked <code>trained = false</code>. It is never reported as a learned result.</span></li>
+      <li><span><b>Real map data and simulated data are kept apart.</b> Study-area boxes and satellite tiles are labelled real. Fire, drones and searched area are labelled simulated. Missing datasets are shown as placeholders, never invented roads or terrain.</span></li>
+      <li><span><b>Repeatability is tested.</b> The same scenario, seed and strategy always give the same flight. Thirty-three automated tests across eleven files check fire spread, sensing, extinguishing, coverage, radio, collisions, metrics and run-to-run identity.</span></li>
+      <li><span><b>No unearned significance.</b> Multi-scene reports print the average with its spread and a 95% interval, and mark that no significance test was run. Slogans like "coordination efficiency" with no formula behind them are not implemented.</span></li>
     </ul>
   </section>
 
-  <section class="slide" id="s10">
-    <p class="eyebrow"><b>10</b> Limitations and next steps</p>
-    <h2>What the model is not, and what would move it forward</h2>
+  <section class="slide" id="s12">
+    <p class="eyebrow"><b>12</b> Limits, next steps, glossary</p>
+    <h2>What the model is not, what comes next, and the words used here</h2>
     <div class="limits">
       <div>
         <h3>Documented simplifications</h3>
         <ul>
-          <li>Fire: elliptical cellular spread, not Phoenix, SPARK, Prometheus or FARSITE.</li>
-          <li>UAV: kinematic point mass; no wind drift, rotor dynamics or airspace rules.</li>
-          <li>Sensor: planimetric range plus Bernoulli; no terrain occlusion, smoke or camera model.</li>
-          <li>Suppression: overlap rule with fixed intensity decay; not a retardant or water-drop model.</li>
-          <li>Communication: geometric range with i.i.d. drops; not a radio channel.</li>
-          <li>Fuel uniform, slope zero, wind constant, unless the user supplies GeoJSON or a DEM. 3D mode renders an ellipsoid.</li>
+          <li>Fire spread is a simplified elliptical grid rule, not an operational fire-behaviour model.</li>
+          <li>Drones are moving points: no wind drift, no rotor physics, no airspace rules.</li>
+          <li>Cameras see through everything within range; there is no terrain, smoke or lens model.</li>
+          <li>Extinguishing is an abstract "within 120 m" rule, not a model of water or retardant.</li>
+          <li>Radio is a plain distance rule with random drops, not a real channel model.</li>
+          <li>Fuel is uniform, the ground is flat and the wind is constant unless the user supplies map layers. The 3D view draws a smooth globe, not real hills.</li>
         </ul>
       </div>
       <div>
         <h3>Proposed next experiments <span class="prop">not yet run</span></h3>
         <ul>
-          <li>Evaluate at 30 seeds with the t-interval, holding scenario fields fixed except policy and seed.</li>
-          <li>Withhold <code>allow_global_state</code> at evaluation so learned actors must rely on own detections and delivered messages, where the greedy expert has no privileged view.</li>
-          <li>Vary ignition count, wind and communication drop rate to find where cloning of the expert stops holding.</li>
-          <li>Add a vegetation fuel layer and DEM slope for Kinglake so the fire model uses real inputs.</li>
-          <li>Report per-fire detection time and time to first detection alongside suppression counts.</li>
+          <li>Repeat the evaluation on 30 scenes so the confidence intervals mean something.</li>
+          <li>Test with the god's-eye fire list switched off, so learned drones must rely on their own sightings and radio messages, where the hand-written expert has no advantage.</li>
+          <li>Vary the number of fires, wind strength and radio drop rate to find where copying the expert stops being enough.</li>
+          <li>Add a real vegetation map and elevation data for Kinglake so fuel and slope are no longer flat.</li>
+          <li>Report how quickly each fire was found alongside how many were put out.</li>
         </ul>
       </div>
     </div>
+
+    <h3 style="margin-top:40px">Glossary</h3>
+    <dl class="gloss">
+      <div><dt>Agent, drone, UAV</dt><dd>Used interchangeably here. One autonomous aircraft making its own decisions each second.</dd></div>
+      <div><dt>Policy, strategy</dt><dd>The decision rule that maps what a drone knows to what it does next. Here, a small neural network.</dd></div>
+      <div><dt>Episode, scene</dt><dd>One complete simulated mission from first ignition to the time limit.</dd></div>
+      <div><dt>Seed</dt><dd>A starting number for the random parts of a run. Same seed, same run.</dd></div>
+      <div><dt>Reward, score</dt><dd>The single number the team receives each second that training tries to increase.</dd></div>
+      <div><dt>Checkpoint</dt><dd>A saved copy of a trained network's weights, a <code>.pt</code> file.</dd></div>
+      <div><dt>Behavioural cloning</dt><dd>Training a network to imitate recorded examples of good behaviour before any trial and error.</dd></div>
+      <div><dt>Actor, critic</dt><dd>The actor chooses moves. The critic judges situations during training and is not used in flight.</dd></div>
+      <div><dt>Holdout</dt><dd>Test scenes the network never trained on, used to decide which version to keep.</dd></div>
+      <div><dt>Baseline, control</dt><dd>A simple strategy, such as random moves or the hand-written expert, that learned strategies are compared against.</dd></div>
+      <div><dt>Coverage</dt><dd>The fraction of searchable squares that some drone's camera has passed over.</dd></div>
+      <div><dt>Headless</dt><dd>Running the simulation with no map or graphics, for speed.</dd></div>
+    </dl>
 
     <div class="run">
       <div>
@@ -700,7 +888,7 @@ uv run python scripts/eval_policies.py --seeds 101 202</pre>
 
     <footer class="colophon">
       <span>Source: <a href="https://github.com/Manithj/bushfire-uav-marl">github.com/Manithj/bushfire-uav-marl</a></span>
-      <span>Stack: FastAPI · NumPy · PyTorch · PettingZoo · React · MapLibre · Cesium</span>
+      <span>Built with FastAPI · NumPy · PyTorch · PettingZoo · React · MapLibre · Cesium</span>
       <span>Manith Marapperuma · 2026</span>
     </footer>
   </section>
@@ -712,10 +900,8 @@ uv run python scripts/eval_policies.py --seeds 101 202</pre>
 
 <script>
 (function(){
-  /* ---------- theme tokens ---------- */
   function tok(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
-  /* ---------- section rail + progress ---------- */
   var links = Array.prototype.slice.call(document.querySelectorAll('#nav a'));
   var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
   var progress = document.getElementById('progress');
@@ -745,7 +931,7 @@ uv run python scripts/eval_policies.py --seeds 101 202</pre>
     sections[next].scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
   });
 
-  /* ---------- fire cellular automaton ---------- */
+  /* fire cellular automaton */
   var W = 120, H = 72, CELL = 80, DT = 30;
   var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
   var hud = document.getElementById('hud');
@@ -882,13 +1068,13 @@ uv run python scripts/eval_policies.py --seeds 101 202</pre>
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ readColors(); draw(); });
   new MutationObserver(function(){ readColors(); draw(); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
 
-  /* ---------- results ---------- */
+  /* results, from backend/data/eval_policies_after.json */
   var rows = [
-    {name:'MAPPO',  algo:'mappo',              kind:'learned',  ext:[4,4], cells:[70,86], cov:[0.571,0.590], rew:[120.5,126.1], earlier:[4,2]},
-    {name:'MADDPG', algo:'maddpg',             kind:'learned',  ext:[3,2], cells:[38,52], cov:[0.600,0.547], rew:[93.4,82.2],   earlier:[4,3]},
-    {name:'DQN',    algo:'independent dqn',    kind:'learned',  ext:[3,4], cells:[44,80], cov:[0.578,0.570], rew:[95.4,124.0],  earlier:[2,0]},
-    {name:'Greedy', algo:'nearest known fire', kind:'scripted', ext:[4,4], cells:[50,81], cov:[0.560,0.552], rew:[113.5,124.4], earlier:null},
-    {name:'Random', algo:'uniform random',     kind:'control',  ext:[0,0], cells:[0,0],   cov:[0.560,0.568], rew:[24.1,8.1],    earlier:null}
+    {name:'MAPPO',  algo:'multi-agent PPO',    kind:'learned',  ext:[4,4], cells:[70,86], cov:[0.571,0.590], rew:[120.5,126.1], earlier:[4,2]},
+    {name:'MADDPG', algo:'multi-agent DDPG',   kind:'learned',  ext:[3,2], cells:[38,52], cov:[0.600,0.547], rew:[93.4,82.2],   earlier:[4,3]},
+    {name:'DQN',    algo:'independent DQN',    kind:'learned',  ext:[3,4], cells:[44,80], cov:[0.578,0.570], rew:[95.4,124.0],  earlier:[2,0]},
+    {name:'Expert', algo:'nearest known fire', kind:'scripted', ext:[4,4], cells:[50,81], cov:[0.560,0.552], rew:[113.5,124.4], earlier:null},
+    {name:'Random', algo:'random moves',       kind:'control',  ext:[0,0], cells:[0,0],   cov:[0.560,0.568], rew:[24.1,8.1],    earlier:null}
   ];
   var seeds = [101,202];
   var tip = document.getElementById('tip');
@@ -946,11 +1132,11 @@ uv run python scripts/eval_policies.py --seeds 101 202</pre>
     svg.setAttribute('viewBox','0 0 '+width+' '+(top+rowH*rows.length+26));
   }
   dotPlot(document.getElementById('svg1'), {
-    rowH:50, domain:[0,4], ticks:[0,1,2,3,4], fmt:function(v){return String(v);}, axisLabel:'sources extinguished, of 4',
+    rowH:50, domain:[0,4], ticks:[0,1,2,3,4], fmt:function(v){return String(v);}, axisLabel:'fires put out, of 4',
     get:function(r){return r.ext;}, earlier:true
   });
   dotPlot(document.getElementById('svg2'), {
-    rowH:40, domain:[0,140], ticks:[0,35,70,105,140], fmt:function(v){return v.toFixed(0);}, axisLabel:'episode reward',
+    rowH:40, domain:[0,140], ticks:[0,35,70,105,140], fmt:function(v){return v.toFixed(0);}, axisLabel:'team score',
     get:function(r){return r.rew;}, earlier:false
   });
 
